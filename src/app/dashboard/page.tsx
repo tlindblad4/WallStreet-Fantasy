@@ -86,7 +86,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {/* Leagues List */}
+        {/* Leagues */}
         <div>
           <h2 className="text-2xl font-bold mb-6">Your Leagues</h2>
           {leagues.length === 0 ? (
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
                 <LeagueCard 
                   key={membership.id} 
                   membership={membership} 
-                  isCommissioner={membership.league.commissioner_id === session.user.id}
+                  currentUserId={session.user.id} 
                 />
               ))}
             </div>
@@ -133,59 +133,62 @@ function StatCard({ title, value, icon }: { title: string; value: string; icon: 
   );
 }
 
-function LeagueCard({ membership, isCommissioner }: { membership: any; isCommissioner: boolean }) {
+function LeagueCard({ membership, currentUserId }: { membership: any; currentUserId: string }) {
   const league = membership.league;
+  const isCommissioner = league.commissioner_id === currentUserId;
   
   return (
-    <Link href={`/leagues/${league.id}`} className="block">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors relative">
-        {/* Delete button - only for commissioner */}
-        {isCommissioner && (
-          <div className="absolute top-4 right-4" onClick={(e) => e.preventDefault()}>
-            <DeleteLeagueButton leagueId={league.id} />
-          </div>
-        )}
-        
-        <div className="flex items-start justify-between mb-4 pr-8">
-          <div>
-            <h3 className="text-lg font-semibold">{league.name}</h3>
-            <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
-              league.status === 'active' ? 'bg-green-500/20 text-green-400' :
-              league.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-slate-700 text-slate-400'
-            }`}>
-              {league.status}
-            </span>
-          </div>
-          {membership.current_rank && (
-            <div className="text-right">
-              <span className="text-2xl font-bold text-yellow-400">#{membership.current_rank}</span>
-              <p className="text-xs text-slate-400">rank</p>
+    <div className="relative">
+      <Link href={`/leagues/${league.id}`}>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="text-xl font-semibold">{league.name}</h3>
+              <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
+                league.status === 'active' ? 'bg-green-500/20 text-green-400' :
+                league.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' :
+                'bg-slate-700 text-slate-400'
+              }`}>
+                {league.status}
+              </span>
             </div>
-          )}
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
-          <div>
-            <p className="text-slate-400 text-sm">Portfolio Value</p>
-            <p className="text-lg font-semibold">${membership.total_value?.toLocaleString()}</p>
+            {membership.current_rank && (
+              <div className="text-right">
+                <span className="text-2xl font-bold text-yellow-400">#{membership.current_rank}</span>
+                <p className="text-xs text-slate-400">rank</p>
+              </div>
+            )}
           </div>
-          <div>
-            <p className="text-slate-400 text-sm">Cash</p>
-            <p className="text-lg font-semibold">${membership.cash_balance?.toLocaleString()}</p>
+          
+          <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-800">
+            <div>
+              <p className="text-slate-400 text-sm">Portfolio Value</p>
+              <p className="text-lg font-semibold">${membership.total_value?.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm">Cash</p>
+              <p className="text-lg font-semibold">${membership.cash_balance?.toLocaleString()}</p>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <p className="text-slate-400 text-sm">Return</p>
+            <p className={`text-lg font-semibold ${
+              membership.total_return_percent >= 0 ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {membership.total_return_percent >= 0 ? '+' : ''}
+              {membership.total_return_percent?.toFixed(2)}%
+            </p>
           </div>
         </div>
-        
-        <div className="mt-4">
-          <p className="text-slate-400 text-sm">Return</p>
-          <p className={`text-lg font-semibold ${
-            membership.total_return_percent >= 0 ? 'text-green-400' : 'text-red-400'
-          }`}>
-            {membership.total_return_percent >= 0 ? '+' : ''}
-            {membership.total_return_percent?.toFixed(2)}%
-          </p>
+      </Link>
+      
+      {/* Delete button — only visible to commissioner */}
+      {isCommissioner && (
+        <div className="absolute top-3 right-3">
+          <DeleteLeagueButton leagueId={league.id} />
         </div>
-      </div>
-    </Link>
+      )}
+    </div>
   );
 }
