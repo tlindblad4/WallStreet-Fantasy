@@ -1,8 +1,10 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
-import { Trophy, TrendingUp, Users, ArrowRight } from "lucide-react";
+import { Trophy, TrendingUp, ArrowRight } from "lucide-react";
+import InviteShare from "@/components/InviteShare";
+import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 
 export default async function LeaguePage({ 
   params 
@@ -40,19 +42,14 @@ export default async function LeaguePage({
     .eq("user_id", session.user.id)
     .single();
 
-  // Get portfolio holdings
-  const { data: holdings } = await supabase
-    .from("portfolio_holdings")
-    .select("*")
-    .eq("league_member_id", member?.id)
-    .order("current_value", { ascending: false });
-
   // Get invite code
   const { data: invite } = await supabase
     .from("league_invites")
     .select("invite_code")
     .eq("league_id", leagueId)
     .single();
+
+  const isCommissioner = league.commissioner_id === session.user.id;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -64,35 +61,34 @@ export default async function LeaguePage({
               ← Back
             </Link>
             <h1 className="text-xl font-bold">{league.name}</h1>
-            <div className="w-16" />
+            <div className="w-16">
+              {isCommissioner && <DeleteLeagueButton leagueId={leagueId} />}
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Stats */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <StatCard
-            label="Portfolio Value"
-            value={`$${member?.total_value?.toLocaleString() || "0"}`}
-            icon={<TrendingUp className="w-5 h-5" />}
-          />
-          <StatCard
-            label="Cash"
-            value={`$${member?.cash_balance?.toLocaleString() || "0"}`}
-            icon={<span className="text-lg">$</span>}
-          />
-          <StatCard
-            label="Return"
-            value={`${member?.total_return_percent >= 0 ? "+" : ""}${member?.total_return_percent?.toFixed(1) || "0"}%`}
-            icon={<TrendingUp className="w-5 h-5" />}
-            positive={member?.total_return_percent >= 0}
-          />
-          <StatCard
-            label="Rank"
-            value={`#${member?.current_rank || "-"}`}
-            icon={<Trophy className="w-5 h-5" />}
-          />
+          <div className="bg-white/5 rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Portfolio Value</p>
+            <p className="text-xl font-bold">${member?.total_value?.toLocaleString() || "0"}</p>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Cash</p>
+            <p className="text-xl font-bold text-green-400">${member?.cash_balance?.toLocaleString() || "0"}</p>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Return</p>
+            <p className={`text-xl font-bold ${member?.total_return_percent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {member?.total_return_percent >= 0 ? '+' : ''}{member?.total_return_percent?.toFixed(1) || "0"}%
+            </p>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-1">Rank</p>
+            <p className="text-xl font-bold text-yellow-400">#{member?.current_rank || "-"}</p>
+          </div>
         </div>
 
         {/* Actions */}
@@ -109,74 +105,39 @@ export default async function LeaguePage({
           </Link>
         </div>
 
-        {/* Invite Code */}
+        {/* Invite Friends Section */}
         {invite && (
-          <div className="bg-white/5 rounded-xl p-4 mb-6">
-            <p className="text-sm text-gray-400 mb-2">Invite Code</p>
-            <code className="text-xl font-mono font-bold">{invite.invite_code}</code>
-            <p className="text-xs text-gray-500 mt-1">Share with friends to join</p>
+          <div className="mb-8">
+            <InviteShare 
+              inviteCode={invite.invite_code} 
+              leagueName={league.name}
+            />
           </div>
         )}
 
-        {/* Holdings */}
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Your Portfolio</h2>
-          {holdings && holdings.length > 0 ? (
-            <div className="space-y-2">
-              {holdings.map((holding) => (
-                <div
-                  key={holding.symbol}
-                  className="bg-white/5 rounded-xl p-4 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="font-bold">{holding.symbol}</p>
-                    <p className="text-sm text-gray-400">{holding.shares} shares @ ${holding.average_cost?.toFixed(2)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">${holding.current_value?.toFixed(2)}</p>
-                    <p className={`text-sm ${holding.unrealized_gain_loss >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {holding.unrealized_gain_loss >= 0 ? "+" : ""}${holding.unrealized_gain_loss?.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+        {/* League Info */}
+        <div className="bg-white/5 rounded-xl p-6">
+          <h2 className="text-lg font-semibold mb-4">League Settings</h2>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-400">Starting Balance</p>
+              <p className="font-semibold">${league.starting_balance?.toLocaleString()}</p>
             </div>
-          ) : (
-            <div className="text-center py-12 bg-white/5 rounded-xl">
-              <p className="text-gray-400">No holdings yet</p>
-              <Link href={`/leagues/${leagueId}/trade`}>
-                <Button className="mt-4 bg-green-500 hover:bg-green-600 text-black">
-                  Start Trading
-                </Button>
-              </Link>
+            <div>
+              <p className="text-gray-400">Season Length</p>
+              <p className="font-semibold">{league.season_length_days} days</p>
             </div>
-          )}
+            <div>
+              <p className="text-gray-400">Max Players</p>
+              <p className="font-semibold">{league.max_players}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Status</p>
+              <p className="font-semibold capitalize">{league.status}</p>
+            </div>
+          </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-function StatCard({ 
-  label, 
-  value, 
-  icon, 
-  positive 
-}: { 
-  label: string; 
-  value: string; 
-  icon: React.ReactNode;
-  positive?: boolean;
-}) {
-  return (
-    <div className="bg-white/5 rounded-xl p-4">
-      <div className="flex items-center gap-2 text-gray-400 mb-1">
-        {icon}
-        <span className="text-xs">{label}</span>
-      </div>
-      <p className={`text-xl font-bold ${positive !== undefined ? (positive ? "text-green-400" : "text-red-400") : ""}`}>
-        {value}
-      </p>
     </div>
   );
 }
