@@ -4,8 +4,9 @@ import { cookies } from "next/headers";
 
 export async function POST(
   request: Request,
-  { params }: { params: { leagueId: string } }
+  { params }: { params: Promise<{ leagueId: string }> }
 ) {
+  const { leagueId } = await params;
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +34,7 @@ export async function POST(
     const { data: member } = await supabase
       .from("league_members")
       .select("id, cash_balance")
-      .eq("league_id", params.leagueId)
+      .eq("league_id", leagueId)
       .eq("user_id", user.id)
       .single();
 

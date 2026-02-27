@@ -28,7 +28,6 @@ export default function TradePage({ params }: { params: { leagueId: string } }) 
   
   const router = useRouter();
   const supabase = createClient();
-  const leagueId = params.leagueId;
 
   useEffect(() => {
     loadPortfolio();
