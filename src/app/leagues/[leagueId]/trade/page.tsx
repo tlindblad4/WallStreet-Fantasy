@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
-import { ArrowLeft, Search, DollarSign } from "lucide-react";
+import { ArrowLeft, Search, DollarSign, ArrowRight } from "lucide-react";
 
 interface Stock {
   symbol: string;
