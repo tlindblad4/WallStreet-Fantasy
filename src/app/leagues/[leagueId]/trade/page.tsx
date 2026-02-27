@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
 import { ArrowLeft, Search, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
@@ -15,7 +15,10 @@ interface Stock {
   changePercent: number;
 }
 
-export default function TradePage({ params }: { params: { leagueId: string } }) {
+export default function TradePage() {
+  const params = useParams();
+  const leagueId = params.leagueId as string;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
