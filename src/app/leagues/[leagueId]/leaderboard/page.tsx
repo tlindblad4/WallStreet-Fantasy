@@ -18,55 +18,58 @@ interface LeaderboardEntry {
 export default function LeaderboardPage() {
   const params = useParams();
   const leagueId = params.leagueId as string;
+  
   const [members, setMembers] = useState<LeaderboardEntry[]>([]);
   const [leagueName, setLeagueName] = useState("");
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
+    const loadLeaderboard = async () => {
+      if (!leagueId) return;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get league name
+      const { data: league } = await supabase
+        .from("leagues")
+        .select("name")
+        .eq("id", leagueId)
+        .single();
+      
+      if (league) setLeagueName(league.name);
+
+      // Get members with rankings
+      const { data: membersData } = await supabase
+        .from("league_members")
+        .select(`
+          current_rank,
+          total_value,
+          total_return_percent,
+          user_id,
+          profiles:user_id (username)
+        `)
+        .eq("league_id", leagueId)
+        .eq("status", "active")
+        .order("current_rank", { ascending: true });
+
+      if (membersData) {
+        const formatted = membersData.map((m: any) => ({
+          rank: m.current_rank || 0,
+          user_id: m.user_id,
+          username: m.profiles?.username || "Unknown",
+          total_value: m.total_value || 0,
+          total_return_percent: m.total_return_percent || 0,
+          isMe: m.user_id === user?.id,
+        }));
+        setMembers(formatted);
+      }
+      
+      setLoading(false);
+    };
+
     loadLeaderboard();
-  }, []);
-
-  const loadLeaderboard = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    // Get league name
-    const { data: league } = await supabase
-      .from("leagues")
-      .select("name")
-      .eq("id", leagueId)
-      .single();
-    
-    if (league) setLeagueName(league.name);
-
-    // Get members with rankings
-    const { data: membersData } = await supabase
-      .from("league_members")
-      .select(`
-        current_rank,
-        total_value,
-        total_return_percent,
-        user_id,
-        profiles:user_id (username)
-      `)
-      .eq("league_id", leagueId)
-      .eq("status", "active")
-      .order("current_rank", { ascending: true });
-
-    if (membersData) {
-      const formatted = membersData.map((m: any) => ({
-        rank: m.current_rank || 0,
-        user_id: m.user_id,
-        username: m.profiles?.username || "Unknown",
-        total_value: m.total_value || 0,
-        total_return_percent: m.total_return_percent || 0,
-        isMe: m.user_id === user?.id,
-      }));
-      setMembers(formatted);
-    }
-    
-    setLoading(false);
-  };
+  }, [leagueId, supabase]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">

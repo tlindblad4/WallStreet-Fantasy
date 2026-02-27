@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
-import { ArrowLeft, Search, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { ArrowLeft, Search, DollarSign } from "lucide-react";
 
 interface Stock {
   symbol: string;
@@ -18,7 +20,7 @@ interface Stock {
 export default function TradePage() {
   const params = useParams();
   const leagueId = params.leagueId as string;
-
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
@@ -32,32 +34,33 @@ export default function TradePage() {
   const router = useRouter();
   const supabase = createClient();
 
+  // Load portfolio data
   useEffect(() => {
+    const loadPortfolio = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !leagueId) return;
+
+      const { data: member } = await supabase
+        .from("league_members")
+        .select("id, cash_balance")
+        .eq("league_id", leagueId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (member) {
+        setCashBalance(member.cash_balance);
+        
+        const { data: holdings } = await supabase
+          .from("portfolio_holdings")
+          .select("*")
+          .eq("league_member_id", member.id);
+        
+        setPortfolio(holdings || []);
+      }
+    };
+
     loadPortfolio();
-  }, []);
-
-  const loadPortfolio = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: member } = await supabase
-      .from("league_members")
-      .select("id, cash_balance")
-      .eq("league_id", leagueId)
-      .eq("user_id", user.id)
-      .single();
-
-    if (member) {
-      setCashBalance(member.cash_balance);
-      
-      const { data: holdings } = await supabase
-        .from("portfolio_holdings")
-        .select("*")
-        .eq("league_member_id", member.id);
-      
-      setPortfolio(holdings || []);
-    }
-  };
+  }, [leagueId, supabase]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -77,7 +80,7 @@ export default function TradePage() {
   };
 
   const executeTrade = async () => {
-    if (!selectedStock || !shares) return;
+    if (!selectedStock || !shares || !leagueId) return;
     
     setLoading(true);
     setError("");
@@ -102,7 +105,25 @@ export default function TradePage() {
     });
 
     if (response.ok) {
-      loadPortfolio();
+      // Reload portfolio
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: member } = await supabase
+          .from("league_members")
+          .select("id, cash_balance")
+          .eq("league_id", leagueId)
+          .eq("user_id", user.id)
+          .single();
+
+        if (member) {
+          setCashBalance(member.cash_balance);
+          const { data: holdings } = await supabase
+            .from("portfolio_holdings")
+            .select("*")
+            .eq("league_member_id", member.id);
+          setPortfolio(holdings || []);
+        }
+      }
       setSelectedStock(null);
       setShares("");
     } else {
