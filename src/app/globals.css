@@ -3,36 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 4%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 6%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 6%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 142 76% 45%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 65%;
-  --accent: 142 76% 45%;
-  --accent-foreground: 0 0% 0%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 142 76% 45%;
-  --radius: 0.75rem;
-}
-
-@layer base {
-  * {
-    @apply border-white/10;
-  }
-  body {
-    @apply bg-[#0a0a0a] text-white;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
+  --background: #0a0a0a;
+  --foreground: #ffffff;
 }
 
 /* Robinhood-style animations */
@@ -97,27 +69,32 @@
 
 /* Gradient text utility */
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500;
+  background: linear-gradient(to right, #4ade80, #10b981, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Glass effect */
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Stock price colors */
 .text-stock-up {
-  @apply text-green-500;
+  color: #22c55e;
 }
 
 .text-stock-down {
-  @apply text-red-500;
+  color: #ef4444;
 }
 
 .bg-stock-up {
-  @apply bg-green-500/20;
+  background: rgba(34, 197, 94, 0.2);
 }
 
 .bg-stock-down {
-  @apply bg-red-500/20;
+  background: rgba(239, 68, 68, 0.2);
 }
