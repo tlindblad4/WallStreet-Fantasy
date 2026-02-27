@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
 import { Trophy, Users, TrendingUp, Plus } from "lucide-react";
+import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -13,7 +14,6 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch user's leagues
   const { data: memberships } = await supabase
     .from("league_members")
     .select(`
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       total_value,
       total_return_percent,
       current_rank,
-      league:leagues(id, name, status, season_start_date, season_end_date)
+      league:leagues(id, name, status, season_start_date, season_end_date, commissioner_id)
     `)
     .eq("user_id", session.user.id)
     .eq("status", "active");
@@ -39,9 +39,7 @@ export default async function DashboardPage() {
               WallStreet Fantasy
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-slate-400">
-                {session.user.email}
-              </span>
+              <span className="text-slate-400">{session.user.email}</span>
               <form action="/api/auth/logout" method="post">
                 <Button type="submit" variant="outline" size="sm">
                   Logout
@@ -88,10 +86,9 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        {/* Leagues */}
+        {/* Leagues List */}
         <div>
           <h2 className="text-2xl font-bold mb-6">Your Leagues</h2>
-          
           {leagues.length === 0 ? (
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center">
               <Trophy className="w-12 h-12 text-slate-600 mx-auto mb-4" />
@@ -108,7 +105,11 @@ export default async function DashboardPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {leagues.map((membership) => (
-                <LeagueCard key={membership.id} membership={membership} />
+                <LeagueCard 
+                  key={membership.id} 
+                  membership={membership} 
+                  isCommissioner={membership.league.commissioner_id === session.user.id}
+                />
               ))}
             </div>
           )}
@@ -132,15 +133,22 @@ function StatCard({ title, value, icon }: { title: string; value: string; icon: 
   );
 }
 
-function LeagueCard({ membership }: { membership: any }) {
+function LeagueCard({ membership, isCommissioner }: { membership: any; isCommissioner: boolean }) {
   const league = membership.league;
   
   return (
-    <Link href={`/leagues/${league.id}`}>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors">
-        <div className="flex items-start justify-between mb-4">
+    <Link href={`/leagues/${league.id}`} className="block">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-colors relative">
+        {/* Delete button - only for commissioner */}
+        {isCommissioner && (
+          <div className="absolute top-4 right-4" onClick={(e) => e.preventDefault()}>
+            <DeleteLeagueButton leagueId={league.id} />
+          </div>
+        )}
+        
+        <div className="flex items-start justify-between mb-4 pr-8">
           <div>
-            <h3 className="text-xl font-semibold">{league.name}</h3>
+            <h3 className="text-lg font-semibold">{league.name}</h3>
             <span className={`inline-block px-2 py-1 rounded text-xs mt-2 ${
               league.status === 'active' ? 'bg-green-500/20 text-green-400' :
               league.status === 'draft' ? 'bg-yellow-500/20 text-yellow-400' :
