@@ -15,12 +15,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const supabase = createClient();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    const supabase = createClient();
 
     // Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({

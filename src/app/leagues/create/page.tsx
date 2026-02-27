@@ -20,12 +20,13 @@ export default function CreateLeaguePage() {
   const [inviteCode, setInviteCode] = useState("");
   
   const router = useRouter();
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    const supabase = createClient();
 
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
