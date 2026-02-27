@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 interface LeaderboardEntry {
@@ -22,7 +22,6 @@ export default function LeaderboardPage() {
   const [leagueName, setLeagueName] = useState("");
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
-  const leagueId = params.leagueId;
 
   useEffect(() => {
     loadLeaderboard();
