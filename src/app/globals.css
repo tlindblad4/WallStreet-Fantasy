@@ -27,10 +27,10 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-white/10;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[#0a0a0a] text-white;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
