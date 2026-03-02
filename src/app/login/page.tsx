@@ -46,6 +46,28 @@ export default function LoginPage() {
           <p className="text-slate-400 mt-2">Sign in to your account</p>
         </div>
 
+        <Link
+          href="/"
+          className="inline-flex items-center text-slate-400 hover:text-slate-200 transition-colors mb-6"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2"
+          >
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
+          </svg>
+          Back to Home
+        </Link>
+
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
           {error && (
             <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
