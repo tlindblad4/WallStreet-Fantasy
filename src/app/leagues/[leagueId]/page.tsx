@@ -7,6 +7,7 @@ import InviteShare from "@/components/InviteShare";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import PortfolioChart from "@/components/PortfolioChart";
 import HoldingsList from "@/components/HoldingsList";
+import PortfolioRefresh from "@/components/PortfolioRefresh";
 
 export default async function LeaguePage({ 
   params 
@@ -77,6 +78,11 @@ export default async function LeaguePage({
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Auto-refresh prices */}
+        {member && (
+          <PortfolioRefresh leagueMemberId={member.id} />
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white/5 rounded-xl p-4">

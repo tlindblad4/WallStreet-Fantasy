@@ -12,6 +12,7 @@ import HoldingsList from "@/components/HoldingsList";
 import TradeHistory from "@/components/TradeHistory";
 import OptionsChain from "@/components/OptionsChain";
 import OptionsPositions from "@/components/OptionsPositions";
+import PortfolioRefresh from "@/components/PortfolioRefresh";
 
 interface Asset {
   symbol: string;
@@ -49,6 +50,7 @@ export default function TradePage() {
   const [allowOptions, setAllowOptions] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "stocks" | "crypto">("all");
   const [tradingMode, setTradingMode] = useState<"assets" | "options">("assets");
+  const [memberId, setMemberId] = useState<string>("");
   
   const supabase = createClient();
 
@@ -66,6 +68,7 @@ export default function TradePage() {
 
       if (member) {
         setCashBalance(member.cash_balance);
+        setMemberId(member.id);
         
         // Check if options trading is allowed
         const { data: league } = await supabase
@@ -273,6 +276,11 @@ export default function TradePage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Auto-refresh prices */}
+        {memberId && (
+          <PortfolioRefresh leagueMemberId={memberId} />
+        )}
+
         {/* Trading Mode Toggle */}
         {allowOptions && (
           <div className="flex gap-2 mb-6">
