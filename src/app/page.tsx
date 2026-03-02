@@ -4,6 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Zap, Shield, ArrowRight, Play, Trophy, BarChart2, Bitcoin } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  HeroStockChart,
+  PortfolioPerformanceChart,
+  VolumeChart,
+  LiveActivityFeed,
+  MarketMetrics,
+} from "@/components/finance-visualizations";
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -86,6 +93,37 @@ export default function HomePage() {
             <Stat value="$50M+" label="Virtual Trades" />
             <div className="w-px h-10 bg-zinc-800" />
             <Stat value="500+" label="Active Leagues" />
+          </div>
+        </div>
+      </section>
+
+      {/* Market Dashboard Visualizations */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Market Dashboard</h2>
+            <p className="text-zinc-400 text-lg">Real-time data powering every trade</p>
+          </div>
+
+          {/* Metrics row */}
+          <div className="mb-6">
+            <MarketMetrics />
+          </div>
+
+          {/* Main chart */}
+          <div className="mb-6">
+            <HeroStockChart />
+          </div>
+
+          {/* Two-column: Portfolio + Volume */}
+          <div className="grid lg:grid-cols-2 gap-6 mb-6">
+            <PortfolioPerformanceChart />
+            <VolumeChart />
+          </div>
+
+          {/* Activity feed */}
+          <div className="max-w-2xl mx-auto">
+            <LiveActivityFeed />
           </div>
         </div>
       </section>
