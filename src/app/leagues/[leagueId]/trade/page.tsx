@@ -95,7 +95,7 @@ export default function TradePage() {
         results = [...results, ...(data.results || []).map((r: any) => ({ ...r, type: "crypto" }))];
       } else if (activeTab === "crypto") {
         // Show popular crypto if no search
-        results = POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0 }));
+        results = POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0, type: "crypto" as const }));
       }
     }
 
@@ -106,7 +106,7 @@ export default function TradePage() {
   // Load popular crypto on tab switch
   useEffect(() => {
     if (activeTab === "crypto" && !searchQuery) {
-      setSearchResults(POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0 })));
+      setSearchResults(POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0, type: "crypto" as const })));
     } else if (activeTab === "stocks") {
       setSearchResults([]);
     }
@@ -140,7 +140,7 @@ export default function TradePage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         symbol: selectedAsset.displaySymbol || selectedAsset.symbol,
-        company_name: selectedAsset.name || selectedAsset.description,
+        company_name: selectedAsset.name,
         trade_type: tradeType,
         shares: parseFloat(shares),
         price_per_share: selectedAsset.price,
@@ -259,7 +259,7 @@ export default function TradePage() {
                   {asset.type === "crypto" && <Bitcoin className="w-5 h-5 text-orange-400" />}
                   <div>
                     <p className="font-bold">{asset.displaySymbol || asset.symbol}</p>
-                    <p className="text-sm text-gray-400">{asset.name || asset.description}</p>
+                    <p className="text-sm text-gray-400">{asset.name}</p>
                   </div>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded ${asset.type === "crypto" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"}`}>
@@ -278,7 +278,7 @@ export default function TradePage() {
                 {selectedAsset.type === "crypto" && <Bitcoin className="w-8 h-8 text-orange-400" />}
                 <div>
                   <h2 className="text-2xl font-bold">{selectedAsset.displaySymbol || selectedAsset.symbol}</h2>
-                  <p className="text-gray-400">{selectedAsset.name || selectedAsset.description}</p>
+                  <p className="text-gray-400">{selectedAsset.name}</p>
                   <span className={`text-xs px-2 py-1 rounded ${selectedAsset.type === "crypto" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"}`}>
                     {selectedAsset.type === "crypto" ? "Cryptocurrency" : "Stock"}
                   </span>
