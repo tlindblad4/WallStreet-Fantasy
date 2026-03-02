@@ -2,16 +2,10 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-// Simple email sending using fetch to email API
-// You can replace this with SendGrid, Resend, AWS SES, etc.
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "re_HZz5HY4H_4i2WTP6iGChY7BvqiQzrrDgf";
+
+// Send email using Resend
 async function sendInviteEmail(to: string, leagueName: string, inviteCode: string, inviterName: string) {
-  // For now, we'll log the email and return success
-  // In production, integrate with your email provider:
-  // - Resend: https://resend.com
-  // - SendGrid: https://sendgrid.com
-  // - AWS SES
-  // - Mailgun
-  
   const joinUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://wall-street-fantasy.vercel.app"}/leagues/join?code=${inviteCode}`;
   
   const emailHtml = `
@@ -55,28 +49,34 @@ async function sendInviteEmail(to: string, leagueName: string, inviteCode: strin
     </div>
   `;
 
-  // TODO: Replace with your email provider
-  // Example using Resend:
-  // const response = await fetch('https://api.resend.com/emails', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify({
-  //     from: 'WallStreet Fantasy <invites@wallstreetfantasy.com>',
-  //     to,
-  //     subject: `You've been invited to join ${leagueName} on WallStreet Fantasy`,
-  //     html: emailHtml,
-  //   }),
-  // });
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'WallStreet Fantasy <invites@wallstreetfantasy.com>',
+        to,
+        subject: `You've been invited to join ${leagueName} on WallStreet Fantasy`,
+        html: emailHtml,
+      }),
+    });
 
-  console.log(`📧 Email would be sent to: ${to}`);
-  console.log(`Subject: You've been invited to join ${leagueName} on WallStreet Fantasy`);
-  
-  // For demo purposes, always return success
-  // In production, return the actual result from your email provider
-  return { success: true, message: "Email queued for sending" };
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Resend API error:', error);
+      return { success: false, error: error.message || 'Failed to send email' };
+    }
+
+    const data = await response.json();
+    console.log(`✅ Email sent to ${to}, ID: ${data.id}`);
+    return { success: true, messageId: data.id };
+  } catch (error: any) {
+    console.error('Failed to send email:', error);
+    return { success: false, error: error.message || 'Network error' };
+  }
 }
 
 export async function POST(request: Request) {
@@ -160,20 +160,22 @@ export async function POST(request: Request) {
     for (const email of validEmails) {
       try {
         const result = await sendInviteEmail(email, league.name, inviteCode, inviterName);
-        results.push({ email, success: result.success });
-      } catch (error) {
-        results.push({ email, success: false, error: "Failed to send" });
+        results.push({ email, success: result.success, messageId: result.messageId, error: result.error });
+      } catch (error: any) {
+        results.push({ email, success: false, error: error.message || "Failed to send" });
       }
     }
 
     const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success);
 
     return NextResponse.json({
-      success: true,
+      success: successful > 0,
       sent: successful,
       total: validEmails.length,
       inviteCode,
       results,
+      failed: failed.length > 0 ? failed : undefined,
     });
   } catch (error: any) {
     console.error("Invite email error:", error);
