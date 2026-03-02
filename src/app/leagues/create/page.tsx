@@ -15,6 +15,7 @@ export default function CreateLeaguePage() {
   const [startingBalance, setStartingBalance] = useState(100000);
   const [seasonLength, setSeasonLength] = useState(90);
   const [maxPlayers, setMaxPlayers] = useState(20);
+  const [allowOptions, setAllowOptions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -47,6 +48,7 @@ export default function CreateLeaguePage() {
         starting_balance: startingBalance,
         season_length_days: seasonLength,
         max_players: maxPlayers,
+        allow_options_trading: allowOptions,
         status: "draft",
       })
       .select()
@@ -207,6 +209,23 @@ export default function CreateLeaguePage() {
                     <option value={50}>50</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allowOptions}
+                    onChange={(e) => setAllowOptions(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-blue-500"
+                  />
+                  <div>
+                    <p className="font-medium text-slate-200">Enable Options Trading</p>
+                    <p className="text-sm text-slate-400">
+                      Allow members to trade call and put options for advanced strategies
+                    </p>
+                  </div>
+                </label>
               </div>
 
               <Button
