@@ -160,6 +160,7 @@ export default async function LeaguePage({
             <InviteShare
               inviteCode={invite.invite_code}
               leagueName={league.name}
+              leagueId={leagueId}
             />
           </div>
         )}
