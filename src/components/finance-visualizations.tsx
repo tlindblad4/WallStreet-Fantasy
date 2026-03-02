@@ -163,7 +163,7 @@ export function HeroStockChart() {
             <AreaChart
               data={data}
               onMouseMove={(state) => {
-                if (state?.activeTooltipIndex !== undefined) setActiveIndex(state.activeTooltipIndex);
+                if (state?.activeTooltipIndex !== undefined) setActiveIndex(Number(state.activeTooltipIndex));
               }}
               onMouseLeave={() => setActiveIndex(null)}
             >
