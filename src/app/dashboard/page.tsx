@@ -41,7 +41,7 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-4">
               <span className="text-slate-400">{session.user.email}</span>
               <form action="/api/auth/logout" method="post">
-                <Button type="submit" variant="outline" size="sm">
+                <Button type="submit" variant="outline" size="sm" className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
                   Logout
                 </Button>
               </form>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
             </Button>
           </Link>
           <Link href="/leagues/join">
-            <Button variant="outline">
+            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-500">
               <Users className="w-4 h-4 mr-2" />
               Join League
             </Button>
