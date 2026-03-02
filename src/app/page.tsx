@@ -12,6 +12,17 @@ import {
   MarketMetrics,
 } from "@/components/finance-visualizations";
 
+const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || "d6gttihr01qg85h02hi0d6gttihr01qg85h02hig";
+
+interface StockQuote {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  isCrypto?: boolean;
+}
+
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -129,23 +140,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Tickers */}
-      <section className="py-16 px-6 border-y border-zinc-800/60 bg-zinc-900/40">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">Market Snapshot</h3>
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live Data
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StockTicker symbol="AAPL" name="Apple" price="182.50" change="+2.4" />
-            <StockTicker symbol="BTC" name="Bitcoin" price="67,420" change="+3.8" isCrypto />
-            <StockTicker symbol="NVDA" name="NVIDIA" price="485.10" change="+5.8" />
-            <StockTicker symbol="ETH" name="Ethereum" price="3,520" change="+2.1" isCrypto />
-          </div>
-        </div>
-      </section>
+      <LiveTickers />
 
       {/* How it works */}
       <section id="how-it-works" className="py-28 px-6">
@@ -248,22 +243,115 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function StockTicker({ symbol, name, price, change, isCrypto }: {
-  symbol: string; name: string; price: string; change: string; isCrypto?: boolean;
-}) {
-  const isPositive = change.startsWith("+");
+// Real-time tickers component
+function LiveTickers() {
+  const [tickers, setTickers] = useState<StockQuote[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTickers = async () => {
+    const symbols = [
+      { symbol: "AAPL", name: "Apple", isCrypto: false },
+      { symbol: "BINANCE:BTCUSDT", name: "Bitcoin", isCrypto: true },
+      { symbol: "NVDA", name: "NVIDIA", isCrypto: false },
+      { symbol: "BINANCE:ETHUSDT", name: "Ethereum", isCrypto: true },
+    ];
+
+    const results = await Promise.all(
+      symbols.map(async (s) => {
+        try {
+          const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${s.symbol}&token=${FINNHUB_API_KEY}`);
+          const data = await response.json();
+          
+          if (data.c && data.c > 0) {
+            return {
+              symbol: s.isCrypto ? s.symbol.replace("BINANCE:", "").replace("USDT", "") : s.symbol,
+              name: s.name,
+              price: data.c,
+              change: data.d,
+              changePercent: data.dp,
+              isCrypto: s.isCrypto,
+            };
+          }
+          return null;
+        } catch (err) {
+          console.error(`Failed to fetch ${s.symbol}:`, err);
+          return null;
+        }
+      })
+    );
+
+    setTickers(results.filter((t) => t !== null) as StockQuote[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchTickers();
+    // Refresh every 60 seconds
+    const interval = setInterval(fetchTickers, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-16 px-6 border-y border-zinc-800/60 bg-zinc-900/40">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">Market Snapshot</h3>
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Loading...
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-zinc-800/60 border border-zinc-700/50 rounded-xl p-4 animate-pulse">
+                <div className="h-4 bg-zinc-700 rounded w-12 mb-2" />
+                <div className="h-3 bg-zinc-700 rounded w-16 mb-3" />
+                <div className="h-5 bg-zinc-700 rounded w-20" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="py-16 px-6 border-y border-zinc-800/60 bg-zinc-900/40">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">Market Snapshot</h3>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live Data
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {tickers.map((ticker) => (
+            <StockTicker key={ticker.symbol} quote={ticker} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StockTicker({ quote }: { quote: StockQuote }) {
+  const isPositive = quote.change >= 0;
   return (
     <div className="bg-zinc-800/60 border border-zinc-700/50 rounded-xl p-4 hover:bg-zinc-800 transition-colors cursor-pointer">
       <div className="flex items-center justify-between mb-1">
-        <span className="font-bold text-sm">{symbol}</span>
+        <span className="font-bold text-sm">{quote.symbol}</span>
         <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
           isPositive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
         }`}>
-          {change}%
+          {isPositive ? "+" : ""}{quote.changePercent.toFixed(1)}%
         </span>
       </div>
-      <div className="text-xs text-zinc-500 mb-2">{name}</div>
-      <div className="text-base font-bold">${price}</div>
+      <div className="text-xs text-zinc-500 mb-2">{quote.name}</div>
+      <div className="text-base font-bold">
+        ${quote.isCrypto ? quote.price.toLocaleString(undefined, { maximumFractionDigits: 0 }) : quote.price.toFixed(2)}
+      </div>
     </div>
   );
 }
