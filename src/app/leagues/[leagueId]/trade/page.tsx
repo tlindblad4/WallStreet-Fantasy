@@ -2,36 +2,47 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
-import { ArrowLeft, Search, DollarSign, ArrowRight } from "lucide-react";
+import { ArrowLeft, Search, DollarSign, Bitcoin } from "lucide-react";
 
-interface Stock {
+interface Asset {
   symbol: string;
+  displaySymbol: string;
   name: string;
   price: number;
   change: number;
   changePercent: number;
+  type: "stock" | "crypto";
 }
+
+// Popular crypto for quick access
+const POPULAR_CRYPTO = [
+  { symbol: "BINANCE:BTCUSDT", displaySymbol: "BTC", description: "Bitcoin", type: "crypto" },
+  { symbol: "BINANCE:ETHUSDT", displaySymbol: "ETH", description: "Ethereum", type: "crypto" },
+  { symbol: "BINANCE:SOLUSDT", displaySymbol: "SOL", description: "Solana", type: "crypto" },
+  { symbol: "BINANCE:ADAUSDT", displaySymbol: "ADA", description: "Cardano", type: "crypto" },
+  { symbol: "BINANCE:DOTUSDT", displaySymbol: "DOT", description: "Polkadot", type: "crypto" },
+];
 
 export default function TradePage() {
   const params = useParams();
   const leagueId = params.leagueId as string;
   
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Stock[]>([]);
-  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [searchResults, setSearchResults] = useState<Asset[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [shares, setShares] = useState("");
   const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cashBalance, setCashBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"all" | "stocks" | "crypto">("all");
   
-  const router = useRouter();
   const supabase = createClient();
 
   // Load portfolio data
@@ -63,29 +74,60 @@ export default function TradePage() {
   }, [leagueId, supabase]);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
     setLoading(true);
-    const response = await fetch(`/api/stocks/search?q=${searchQuery}`);
-    const data = await response.json();
-    setSearchResults(data.results || []);
+    
+    let results: Asset[] = [];
+
+    if (activeTab === "all" || activeTab === "stocks") {
+      // Search stocks
+      if (searchQuery.trim()) {
+        const response = await fetch(`/api/stocks/search?q=${searchQuery}&type=stock`);
+        const data = await response.json();
+        results = [...results, ...(data.results || []).map((r: any) => ({ ...r, type: "stock" }))];
+      }
+    }
+
+    if (activeTab === "all" || activeTab === "crypto") {
+      // Search crypto
+      if (searchQuery.trim()) {
+        const response = await fetch(`/api/stocks/search?q=${searchQuery}&type=crypto`);
+        const data = await response.json();
+        results = [...results, ...(data.results || []).map((r: any) => ({ ...r, type: "crypto" }))];
+      } else if (activeTab === "crypto") {
+        // Show popular crypto if no search
+        results = POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0 }));
+      }
+    }
+
+    setSearchResults(results);
     setLoading(false);
   };
 
-  const handleSelectStock = async (stock: Stock) => {
-    const response = await fetch(`/api/stocks/quote?symbol=${stock.symbol}`);
+  // Load popular crypto on tab switch
+  useEffect(() => {
+    if (activeTab === "crypto" && !searchQuery) {
+      setSearchResults(POPULAR_CRYPTO.map(c => ({ ...c, name: c.description, price: 0, change: 0, changePercent: 0 })));
+    } else if (activeTab === "stocks") {
+      setSearchResults([]);
+    }
+  }, [activeTab, searchQuery]);
+
+  const handleSelectAsset = async (asset: Asset) => {
+    const type = asset.type || (asset.symbol.includes(":") ? "crypto" : "stock");
+    const response = await fetch(`/api/stocks/quote?symbol=${asset.symbol}&type=${type}`);
     const quote = await response.json();
-    setSelectedStock({ ...stock, ...quote });
+    setSelectedAsset({ ...asset, ...quote, type });
     setSearchResults([]);
+    setSearchQuery("");
   };
 
   const executeTrade = async () => {
-    if (!selectedStock || !shares || !leagueId) return;
+    if (!selectedAsset || !shares || !leagueId) return;
     
     setLoading(true);
     setError("");
 
-    const total = selectedStock.price * parseFloat(shares);
+    const total = selectedAsset.price * parseFloat(shares);
     
     if (tradeType === "buy" && total > cashBalance) {
       setError("Insufficient funds");
@@ -97,10 +139,12 @@ export default function TradePage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        symbol: selectedStock.symbol,
+        symbol: selectedAsset.displaySymbol || selectedAsset.symbol,
+        company_name: selectedAsset.name || selectedAsset.description,
         trade_type: tradeType,
         shares: parseFloat(shares),
-        price_per_share: selectedStock.price,
+        price_per_share: selectedAsset.price,
+        asset_type: selectedAsset.type || "stock",
       }),
     });
 
@@ -124,7 +168,7 @@ export default function TradePage() {
           setPortfolio(holdings || []);
         }
       }
-      setSelectedStock(null);
+      setSelectedAsset(null);
       setShares("");
     } else {
       const data = await response.json();
@@ -134,7 +178,7 @@ export default function TradePage() {
     setLoading(false);
   };
 
-  const total = selectedStock ? selectedStock.price * (parseFloat(shares) || 0) : 0;
+  const total = selectedAsset ? selectedAsset.price * (parseFloat(shares) || 0) : 0;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -156,6 +200,30 @@ export default function TradePage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {(["all", "stocks", "crypto"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-3 rounded-xl font-semibold capitalize transition-colors ${
+                activeTab === tab
+                  ? "bg-green-500 text-black"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10"
+              }`}
+            >
+              {tab === "crypto" ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Bitcoin className="w-4 h-4" />
+                  Crypto
+                </span>
+              ) : (
+                tab
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
@@ -165,7 +233,7 @@ export default function TradePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search stocks (e.g. AAPL, TSLA)"
+              placeholder={activeTab === "crypto" ? "Search crypto (e.g. BTC, ETH)" : "Search stocks (e.g. AAPL, TSLA)"}
               className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
             />
             <Button
@@ -181,34 +249,45 @@ export default function TradePage() {
         {/* Search Results */}
         {searchResults.length > 0 && (
           <div className="bg-white/5 rounded-2xl border border-white/10 mb-6 overflow-hidden">
-            {searchResults.map((stock) => (
+            {searchResults.map((asset) => (
               <button
-                key={stock.symbol}
-                onClick={() => handleSelectStock(stock)}
+                key={asset.symbol}
+                onClick={() => handleSelectAsset(asset)}
                 className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 border-b border-white/5 last:border-0"
               >
-                <div className="text-left">
-                  <p className="font-bold">{stock.symbol}</p>
-                  <p className="text-sm text-gray-400">{stock.name}</p>
+                <div className="text-left flex items-center gap-3">
+                  {asset.type === "crypto" && <Bitcoin className="w-5 h-5 text-orange-400" />}
+                  <div>
+                    <p className="font-bold">{asset.displaySymbol || asset.symbol}</p>
+                    <p className="text-sm text-gray-400">{asset.name || asset.description}</p>
+                  </div>
                 </div>
-                <ArrowLeft className="w-5 h-5 rotate-180 text-gray-500" />
+                <span className={`text-xs px-2 py-1 rounded ${asset.type === "crypto" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"}`}>
+                  {asset.type === "crypto" ? "Crypto" : "Stock"}
+                </span>
               </button>
             ))}
           </div>
         )}
 
-        {/* Selected Stock */}
-        {selectedStock && (
+        {/* Selected Asset */}
+        {selectedAsset && (
           <div className="bg-white/5 rounded-2xl border border-white/10 p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold">{selectedStock.symbol}</h2>
-                <p className="text-gray-400">{selectedStock.name}</p>
+              <div className="flex items-center gap-3">
+                {selectedAsset.type === "crypto" && <Bitcoin className="w-8 h-8 text-orange-400" />}
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedAsset.displaySymbol || selectedAsset.symbol}</h2>
+                  <p className="text-gray-400">{selectedAsset.name || selectedAsset.description}</p>
+                  <span className={`text-xs px-2 py-1 rounded ${selectedAsset.type === "crypto" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"}`}>
+                    {selectedAsset.type === "crypto" ? "Cryptocurrency" : "Stock"}
+                  </span>
+                </div>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold">${selectedStock.price?.toFixed(2)}</p>
-                <p className={`text-sm ${(selectedStock.change || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {(selectedStock.change || 0) >= 0 ? "+" : ""}{selectedStock.change?.toFixed(2)} ({selectedStock.changePercent?.toFixed(2)}%)
+                <p className="text-3xl font-bold">${selectedAsset.price?.toFixed(2)}</p>
+                <p className={`text-sm ${(selectedAsset.change || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {(selectedAsset.change || 0) >= 0 ? "+" : ""}{selectedAsset.change?.toFixed(2)} ({selectedAsset.changePercent?.toFixed(2)}%)
                 </p>
               </div>
             </div>
@@ -239,14 +318,16 @@ export default function TradePage() {
 
             {/* Shares Input */}
             <div className="mb-6">
-              <label className="block text-sm text-gray-400 mb-2">Shares</label>
+              <label className="block text-sm text-gray-400 mb-2">
+                {selectedAsset.type === "crypto" ? "Amount" : "Shares"}
+              </label>
               <input
                 type="number"
                 value={shares}
                 onChange={(e) => setShares(e.target.value)}
                 placeholder="0"
                 min="0"
-                step="0.01"
+                step={selectedAsset.type === "crypto" ? "0.0001" : "0.01"}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-2xl font-bold text-white focus:outline-none focus:border-green-500"
               />
             </div>
@@ -255,7 +336,7 @@ export default function TradePage() {
             <div className="bg-white/5 rounded-xl p-4 mb-6">
               <div className="flex justify-between mb-2">
                 <span className="text-gray-400">Market Price</span>
-                <span>${selectedStock.price?.toFixed(2)}</span>
+                <span>${selectedAsset.price?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-xl font-bold">
                 <span>Estimated Total</span>
@@ -276,7 +357,7 @@ export default function TradePage() {
                   : "bg-red-500 hover:bg-red-600 text-white"
               }`}
             >
-              {loading ? "Processing..." : `${tradeType === "buy" ? "Buy" : "Sell"} ${selectedStock.symbol}`}
+              {loading ? "Processing..." : `${tradeType === "buy" ? "Buy" : "Sell"} ${selectedAsset.displaySymbol || selectedAsset.symbol}`}
             </Button>
           </div>
         )}
@@ -296,9 +377,12 @@ export default function TradePage() {
                   key={holding.symbol}
                   className="bg-white/5 rounded-xl p-4 flex items-center justify-between"
                 >
-                  <div>
-                    <p className="font-bold">{holding.symbol}</p>
-                    <p className="text-sm text-gray-400">{holding.shares} shares</p>
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2 h-2 rounded-full ${holding.symbol.length <= 4 ? "bg-orange-400" : "bg-blue-400"}`} />
+                    <div>
+                      <p className="font-bold">{holding.symbol}</p>
+                      <p className="text-sm text-gray-400">{holding.shares} shares</p>
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold">${holding.current_value?.toFixed(2)}</p>
