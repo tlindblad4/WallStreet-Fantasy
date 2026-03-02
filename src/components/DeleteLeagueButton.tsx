@@ -43,7 +43,7 @@ export default function DeleteLeagueButton({ leagueId }: { leagueId: string }) {
     <button
       onClick={handleDelete}
       disabled={loading}
-      className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+      className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
       title="Delete league"
     >
       <Trash2 className="w-4 h-4" />
