@@ -2,9 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
-import { Trophy, TrendingUp, ArrowRight } from "lucide-react";
+import { Trophy, TrendingUp, ArrowRight, TrendingDown } from "lucide-react";
 import InviteShare from "@/components/InviteShare";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
+import PortfolioChart from "@/components/PortfolioChart";
+import HoldingsList from "@/components/HoldingsList";
 
 export default async function LeaguePage({ 
   params 
@@ -41,6 +43,12 @@ export default async function LeaguePage({
     .eq("league_id", leagueId)
     .eq("user_id", session.user.id)
     .single();
+
+  // Get portfolio holdings
+  const { data: holdings } = await supabase
+    .from("portfolio_holdings")
+    .select("*")
+    .eq("league_member_id", member?.id);
 
   // Get invite code
   const { data: invite } = await supabase
@@ -105,11 +113,46 @@ export default async function LeaguePage({
           </Link>
         </div>
 
+        {/* Portfolio Chart */}
+        <div className="mb-8">
+          <PortfolioChart
+            metrics={{
+              totalValue: member?.total_value || 100000,
+              cashBalance: member?.cash_balance || 100000,
+              totalReturn: member?.total_return || 0,
+              totalReturnPercent: member?.total_return_percent || 0,
+              dayChange: 0,
+              dayChangePercent: 0,
+              bestPerformer: holdings && holdings.length > 0
+                ? holdings.reduce((best, h) =>
+                    (h.unrealized_gain_loss_percent || 0) > (best?.return || 0)
+                      ? { symbol: h.symbol, return: h.unrealized_gain_loss_percent || 0 }
+                      : best,
+                    null
+                  )
+                : null,
+              worstPerformer: holdings && holdings.length > 0
+                ? holdings.reduce((worst, h) =>
+                    (h.unrealized_gain_loss_percent || 0) < (worst?.return || 0)
+                      ? { symbol: h.symbol, return: h.unrealized_gain_loss_percent || 0 }
+                      : worst,
+                    null
+                  )
+                : null,
+            }}
+          />
+        </div>
+
+        {/* Holdings List */}
+        <div className="mb-8">
+          <HoldingsList holdings={holdings || []} />
+        </div>
+
         {/* Invite Friends Section */}
         {invite && (
           <div className="mb-8">
-            <InviteShare 
-              inviteCode={invite.invite_code} 
+            <InviteShare
+              inviteCode={invite.invite_code}
               leagueName={league.name}
             />
           </div>

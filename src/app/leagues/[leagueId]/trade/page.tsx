@@ -8,6 +8,8 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
 import { ArrowLeft, Search, DollarSign, Bitcoin } from "lucide-react";
+import HoldingsList from "@/components/HoldingsList";
+import TradeHistory from "@/components/TradeHistory";
 
 interface Asset {
   symbol: string;
@@ -42,6 +44,7 @@ export default function TradePage() {
   const [cashBalance, setCashBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "stocks" | "crypto">("all");
+  const [trades, setTrades] = useState<any[]>([]);
   
   const supabase = createClient();
 
@@ -67,6 +70,16 @@ export default function TradePage() {
           .eq("league_member_id", member.id);
         
         setPortfolio(holdings || []);
+
+        // Load trades
+        const { data: tradesData } = await supabase
+          .from("trades")
+          .select("*")
+          .eq("league_member_id", member.id)
+          .order("executed_at", { ascending: false })
+          .limit(20);
+        
+        setTrades(tradesData || []);
       }
     };
 
@@ -166,6 +179,15 @@ export default function TradePage() {
             .select("*")
             .eq("league_member_id", member.id);
           setPortfolio(holdings || []);
+
+          // Reload trades
+          const { data: tradesData } = await supabase
+            .from("trades")
+            .select("*")
+            .eq("league_member_id", member.id)
+            .order("executed_at", { ascending: false })
+            .limit(20);
+          setTrades(tradesData || []);
         }
       }
       setSelectedAsset(null);
@@ -363,38 +385,12 @@ export default function TradePage() {
         )}
 
         {/* Portfolio */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Your Portfolio</h3>
-          {portfolio.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <DollarSign className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No holdings yet. Start trading!</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {portfolio.map((holding) => (
-                <div
-                  key={holding.symbol}
-                  className="bg-white/5 rounded-xl p-4 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`w-2 h-2 rounded-full ${holding.symbol.length <= 4 ? "bg-orange-400" : "bg-blue-400"}`} />
-                    <div>
-                      <p className="font-bold">{holding.symbol}</p>
-                      <p className="text-sm text-gray-400">{holding.shares} shares</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">${holding.current_value?.toFixed(2)}</p>
-                    <p className={`text-sm ${(holding.unrealized_gain_loss || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {(holding.unrealized_gain_loss || 0) >= 0 ? "+" : ""}${holding.unrealized_gain_loss?.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="mb-8">
+          <HoldingsList holdings={portfolio} />
         </div>
+
+        {/* Trade History */}
+        <TradeHistory trades={trades} />
       </main>
     </div>
   );
