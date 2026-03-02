@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, Zap, Shield, ArrowRight, Play, Trophy, BarChart2 } from "lucide-react";
+import { TrendingUp, Users, Zap, Shield, ArrowRight, Play, Trophy, BarChart2, Bitcoin } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
@@ -62,7 +62,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-lg md:text-xl text-zinc-400 max-w-xl mx-auto mb-10 leading-relaxed">
-            Start with $100K virtual cash. Trade real stocks. 
+            Start with $100K virtual cash. Trade stocks & crypto (BTC, ETH, SOL). 
             Compete with friends in private leagues. Best portfolio wins.
           </p>
 
@@ -102,9 +102,9 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StockTicker symbol="AAPL" name="Apple" price="182.50" change="+2.4" />
-            <StockTicker symbol="TSLA" name="Tesla" price="242.30" change="-1.2" />
+            <StockTicker symbol="BTC" name="Bitcoin" price="67,420" change="+3.8" isCrypto />
             <StockTicker symbol="NVDA" name="NVIDIA" price="485.10" change="+5.8" />
-            <StockTicker symbol="MSFT" name="Microsoft" price="378.90" change="+1.1" />
+            <StockTicker symbol="ETH" name="Ethereum" price="3,520" change="+2.1" isCrypto />
           </div>
         </div>
       </section>
@@ -119,7 +119,7 @@ export default function HomePage() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <Step number="01" title="Create a League" description="Invite your friends, set season length and starting cash. You're the commissioner." />
-            <Step number="02" title="Trade Real Stocks" description="Buy and sell using live market prices. Your $100K virtual portfolio updates in real time." />
+            <Step number="02" title="Trade Stocks & Crypto" description="Buy and sell stocks and cryptocurrency using live market prices. BTC, ETH, SOL, and more." />
             <Step number="03" title="Climb the Board" description="Rankings update every minute. The highest portfolio value at season end wins." />
           </div>
         </div>
@@ -133,11 +133,16 @@ export default function HomePage() {
             <p className="text-zinc-400 text-lg">Built for competitive traders</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
             <FeatureCard
               icon={<Zap className="w-5 h-5 text-emerald-400" />}
               title="Real-Time Prices"
               description="Live market data powering every trade."
+            />
+            <FeatureCard
+              icon={<Bitcoin className="w-5 h-5 text-orange-400" />}
+              title="Crypto Trading"
+              description="Trade BTC, ETH, SOL, ADA, DOT & more."
             />
             <FeatureCard
               icon={<Users className="w-5 h-5 text-blue-400" />}
@@ -205,8 +210,8 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function StockTicker({ symbol, name, price, change }: {
-  symbol: string; name: string; price: string; change: string;
+function StockTicker({ symbol, name, price, change, isCrypto }: {
+  symbol: string; name: string; price: string; change: string; isCrypto?: boolean;
 }) {
   const isPositive = change.startsWith("+");
   return (
