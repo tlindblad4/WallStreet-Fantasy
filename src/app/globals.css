@@ -19,9 +19,15 @@
   50% { transform: translateY(-10px); }
 }
 
-.animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
-.animate-pulse-green { animation: pulse-green 2s infinite; }
-.animate-float { animation: float 3s ease-in-out infinite; }
+@utility animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+@utility animate-pulse-green {
+  animation: pulse-green 2s infinite;
+}
+@utility animate-float {
+  animation: float 3s ease-in-out infinite;
+}
 
 @keyframes heroFloat {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -51,23 +57,23 @@
 }
 
 @keyframes glowPulse {
-  0%, 100% { opacity: 0.06; transform: translate(-50%, 0) scale(1); }
-  50% { opacity: 0.12; transform: translate(-50%, 0) scale(1.1); }
+  0%, 100% { opacity: 0.06; transform: scale(1); }
+  50% { opacity: 0.12; transform: scale(1.1); }
 }
 
-.hero-fade-up { 
+@utility hero-fade-up {
   opacity: 0;
   animation: heroFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.hero-fade-in {
+@utility hero-fade-in {
   opacity: 0;
   animation: heroFadeIn 1s ease forwards;
 }
-.hero-scale-in {
+@utility hero-scale-in {
   opacity: 0;
   animation: heroScaleIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.hero-glow-pulse {
+@utility hero-glow-pulse {
   animation: glowPulse 4s ease-in-out infinite;
 }
 
@@ -78,7 +84,7 @@
 ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
 
 /* Gradient text */
-.text-gradient {
+@utility text-gradient {
   background: linear-gradient(135deg, #4ade80, #10b981, #14b8a6, #22d3ee);
   background-size: 200% 200%;
   -webkit-background-clip: text;
@@ -93,14 +99,14 @@
 }
 
 /* Glass effect */
-.glass {
+@utility glass {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Stock colors */
-.text-stock-up { color: #22c55e; }
-.text-stock-down { color: #ef4444; }
-.bg-stock-up { background: rgba(34, 197, 94, 0.2); }
-.bg-stock-down { background: rgba(239, 68, 68, 0.2); }
+@utility text-stock-up { color: #22c55e; }
+@utility text-stock-down { color: #ef4444; }
+@utility bg-stock-up { background: rgba(34, 197, 94, 0.2); }
+@utility bg-stock-down { background: rgba(239, 68, 68, 0.2); }
