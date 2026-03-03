@@ -11,6 +11,7 @@ import {
   LiveActivityFeed,
   MarketMetrics,
 } from "@/components/finance-visualizations";
+import { HeroAnimation } from "@/components/hero-animation";
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
@@ -88,8 +89,13 @@ export default function HomePage() {
             </Button>
           </div>
 
+          {/* Immersive Hero Visualization */}
+          <div className="mt-16 mx-auto max-w-5xl">
+            <HeroAnimation />
+          </div>
+
           {/* Stats row */}
-          <div className="flex items-center justify-center gap-12 mt-20 pt-12 border-t border-zinc-800/40">
+          <div className="flex items-center justify-center gap-12 mt-16 pt-12 border-t border-zinc-800/40">
             <Stat value="10K+" label="Active Traders" />
             <div className="w-px h-10 bg-zinc-800/60" />
             <Stat value="$50M+" label="Virtual Trades" />

@@ -23,6 +23,13 @@
 .animate-pulse-green { animation: pulse-green 2s infinite; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(0.5deg); }
+  50% { transform: translateY(-14px) rotate(-0.3deg); }
+  75% { transform: translateY(-6px) rotate(0.2deg); }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #0a0a0a; }
