@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -79,10 +79,17 @@ const TRADE_ACTIVITIES = [
 // --- Hero Chart ---
 
 export function HeroStockChart() {
-  const [data, setData] = useState(() => generateStockData(60, 182, 2.5));
+  const [data, setData] = useState<ReturnType<typeof generateStockData>>([]);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setData(generateStockData(60, 182, 2.5));
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
       setData((prev) => {
         const last = prev[prev.length - 1];
@@ -101,7 +108,15 @@ export function HeroStockChart() {
       });
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
+
+  if (!mounted || data.length === 0) {
+    return (
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 h-[440px] flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const currentPrice = data[data.length - 1]?.price ?? 0;
   const startPrice = data[0]?.price ?? 0;
@@ -255,11 +270,26 @@ export function HeroStockChart() {
 // --- Portfolio Performance Chart ---
 
 export function PortfolioPerformanceChart() {
-  const data = useMemo(() => generatePortfolioData(), []);
+  const [data, setData] = useState<ReturnType<typeof generatePortfolioData>>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setData(generatePortfolioData());
+    setMounted(true);
+  }, []);
+
   const currentValue = data[data.length - 1]?.value ?? 0;
   const gain = currentValue - 100000;
   const gainPercent = ((gain / 100000) * 100).toFixed(1);
   const isUp = gain >= 0;
+
+  if (!mounted || data.length === 0) {
+    return (
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 h-[320px] flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
@@ -352,7 +382,21 @@ export function PortfolioPerformanceChart() {
 // --- Volume Chart ---
 
 export function VolumeChart() {
-  const data = useMemo(() => generateVolumeData(), []);
+  const [data, setData] = useState<ReturnType<typeof generateVolumeData>>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setData(generateVolumeData());
+    setMounted(true);
+  }, []);
+
+  if (!mounted || data.length === 0) {
+    return (
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6 h-[320px] flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">

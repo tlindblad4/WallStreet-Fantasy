@@ -300,6 +300,16 @@ interface CardData {
   isUp: boolean;
 }
 
+// Pre-computed sparkline heights to avoid hydration mismatch from Math.random()
+const SPARKLINES: number[][] = [
+  [8, 10, 6, 12, 9, 14, 7, 11, 15, 10, 13, 16],
+  [5, 8, 12, 10, 14, 9, 16, 11, 8, 13, 15, 17],
+  [12, 9, 7, 14, 11, 16, 8, 13, 10, 15, 12, 18],
+  [10, 14, 8, 6, 11, 9, 13, 7, 15, 10, 8, 5],
+  [6, 9, 13, 11, 8, 15, 10, 14, 12, 16, 9, 14],
+  [14, 11, 8, 16, 12, 9, 15, 13, 10, 17, 14, 18],
+];
+
 const CARDS: CardData[] = [
   { symbol: "AAPL", name: "Apple Inc.", price: "$182.52", change: "+2.4%", isUp: true },
   { symbol: "BTC", name: "Bitcoin", price: "$67,420", change: "+3.8%", isUp: true },
@@ -390,21 +400,18 @@ function FloatingCards() {
 
               {/* Mini sparkline decoration */}
               <div className="mt-2 h-[18px] flex items-end gap-[2px]">
-                {Array.from({ length: 12 }, (_, j) => {
-                  const h = Math.random() * 14 + 4;
-                  return (
-                    <div
-                      key={j}
-                      className="flex-1 rounded-sm"
-                      style={{
-                        height: `${h}px`,
-                        background: card.isUp
-                          ? `rgba(16, 185, 129, ${0.15 + (j / 12) * 0.35})`
-                          : `rgba(239, 68, 68, ${0.15 + (j / 12) * 0.35})`,
-                      }}
-                    />
-                  );
-                })}
+                {SPARKLINES[i].map((h, j) => (
+                  <div
+                    key={j}
+                    className="flex-1 rounded-sm"
+                    style={{
+                      height: `${h}px`,
+                      background: card.isUp
+                        ? `rgba(16, 185, 129, ${0.15 + (j / 12) * 0.35})`
+                        : `rgba(239, 68, 68, ${0.15 + (j / 12) * 0.35})`,
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>
