@@ -158,8 +158,8 @@ export function HeroStockChart() {
           </div>
         </div>
 
-        <div className="h-[280px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[280px] w-full">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <AreaChart
               data={data}
               onMouseMove={(state) => {
@@ -229,8 +229,8 @@ export function HeroStockChart() {
         </div>
 
         {/* Volume mini bar */}
-        <div className="h-[50px] mt-2 opacity-50">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[50px] w-full mt-2 opacity-50">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <BarChart data={data}>
               <Bar dataKey="volume" radius={[1, 1, 0, 0]}>
                 {data.map((entry, index) => (
@@ -288,8 +288,8 @@ export function PortfolioPerformanceChart() {
         </div>
       </div>
 
-      <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[200px] w-full">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <ComposedChart data={data}>
             <defs>
               <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
@@ -375,8 +375,8 @@ export function VolumeChart() {
         </div>
       </div>
 
-      <div className="h-[200px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[200px] w-full">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <BarChart data={data} barGap={1}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
             <XAxis dataKey="hour" tick={{ fill: "#52525b", fontSize: 9 }} axisLine={false} tickLine={false} interval={3} />
