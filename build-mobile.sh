@@ -1,30 +1,30 @@
 #!/bin/bash
 
 # Build script for Capacitor mobile apps
-# This builds the Next.js app normally and copies it to Capacitor
+# This syncs the mobile directory with Capacitor native projects
 
-echo "🏗️ Building WallStreet Fantasy for mobile..."
+echo "🏗️ Building WallStreet Fantasy mobile app..."
 
-# Build normally (not static export)
-echo "🔨 Building Next.js app..."
-npm run build
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-# Check if build succeeded
-if [ $? -ne 0 ]; then
-    echo "❌ Build failed!"
+# Sync with Capacitor
+echo -e "${YELLOW}📱 Syncing with Capacitor...${NC}"
+npx cap sync
+
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ Mobile app ready!${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "  iOS:     npx cap open ios"
+    echo "  Android: npx cap open android"
+    echo ""
+    echo "To run on device:"
+    echo "  iOS:     npx cap run ios"
+    echo "  Android: npx cap run android"
+else
+    echo "❌ Sync failed!"
     exit 1
 fi
-
-# Copy the built app to Capacitor
-echo "📱 Copying to Capacitor..."
-npx cap copy
-
-echo "✨ Mobile build complete!"
-echo ""
-echo "Next steps:"
-echo "  iOS:     npx cap open ios"
-echo "  Android: npx cap open android"
-echo ""
-echo "⚠️  Note: API routes won't work in the mobile app."
-echo "    Configure your app to use the deployed API at:"
-echo "    https://wall-street-fantasy.vercel.app/api"

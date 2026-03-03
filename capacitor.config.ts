@@ -3,19 +3,21 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.wallstreetfantasy.app',
   appName: 'WallStreet Fantasy',
-  webDir: '.next',
+  webDir: 'mobile',
   server: {
     androidScheme: 'https',
     iosScheme: 'https',
-    // Allow cleartext for local development
-    cleartext: true
+    cleartext: true,
+    // For development, you can use your local IP
+    // url: 'http://192.168.1.X:3000',
   },
   ios: {
     contentInset: 'always',
-    scheme: 'WallStreetFantasy'
+    allowsLinkPreview: false,
+    scrollEnabled: false,
   },
   android: {
-    allowMixedContent: true
+    allowMixedContent: true,
   },
   plugins: {
     SplashScreen: {
@@ -27,7 +29,7 @@ const config: CapacitorConfig = {
       showSpinner: true,
       androidSpinnerStyle: 'large',
       iosSpinnerStyle: 'small',
-      spinnerColor: '#10b981'
+      spinnerColor: '#10b981',
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert']
