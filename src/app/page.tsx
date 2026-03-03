@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Zap, Shield, ArrowRight, Play, Trophy, BarChart2, Bitcoin, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   HeroStockChart,
   PortfolioPerformanceChart,
@@ -56,27 +56,45 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative pt-40 pb-28 px-6">
-        {/* Background glows */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none" />
+        {/* Animated background glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none hero-glow-pulse" />
+        <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none hero-glow-pulse" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-20 right-1/4 w-[250px] h-[250px] bg-teal-500/4 rounded-full blur-[100px] pointer-events-none hero-glow-pulse" style={{ animationDelay: "3s" }} />
 
         <div className="max-w-5xl mx-auto relative text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-10 hover:bg-emerald-500/15 transition-colors cursor-default">
+          {/* Badge - stagger 0ms */}
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-10 hover:bg-emerald-500/15 transition-colors cursor-default hero-fade-up"
+            style={{ animationDelay: "0.1s" }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm text-emerald-400 font-medium">Now in Beta — Free to Play</span>
+            <span className="text-sm text-emerald-400 font-medium">Now in Beta -- Free to Play</span>
           </div>
 
+          {/* Heading - stagger 200ms */}
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-none text-balance">
-            <span className="block text-white">Fantasy Sports.</span>
-            <span className="block text-gradient">For Stocks.</span>
+            <span className="block text-white hero-fade-up" style={{ animationDelay: "0.3s" }}>
+              Fantasy Sports.
+            </span>
+            <span className="block text-gradient hero-fade-up" style={{ animationDelay: "0.5s" }}>
+              For Stocks.
+            </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-zinc-400 max-w-xl mx-auto mb-12 leading-relaxed text-pretty">
+          {/* Subtitle - stagger 600ms */}
+          <p
+            className="text-lg md:text-xl text-zinc-400 max-w-xl mx-auto mb-12 leading-relaxed text-pretty hero-fade-up"
+            style={{ animationDelay: "0.7s" }}
+          >
             Start with $100K virtual cash. Trade stocks & crypto (BTC, ETH, SOL). 
             Compete with friends in private leagues. Best portfolio wins.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* CTA buttons - stagger 800ms */}
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center hero-fade-up"
+            style={{ animationDelay: "0.9s" }}
+          >
             <Link href="/register">
               <Button size="lg" className="group">
                 Start Trading Free
@@ -89,18 +107,24 @@ export default function HomePage() {
             </Button>
           </div>
 
-          {/* Immersive Hero Visualization */}
-          <div className="mt-16 mx-auto max-w-5xl">
+          {/* Immersive Hero Visualization - scale in */}
+          <div
+            className="mt-16 mx-auto max-w-5xl hero-scale-in"
+            style={{ animationDelay: "1.1s" }}
+          >
             <HeroAnimation />
           </div>
 
-          {/* Stats row */}
-          <div className="flex items-center justify-center gap-12 mt-16 pt-12 border-t border-zinc-800/40">
-            <Stat value="10K+" label="Active Traders" />
+          {/* Stats row - fade in */}
+          <div
+            className="flex items-center justify-center gap-12 mt-16 pt-12 border-t border-zinc-800/40 hero-fade-in"
+            style={{ animationDelay: "1.5s" }}
+          >
+            <AnimatedStat target={10} suffix="K+" label="Active Traders" />
             <div className="w-px h-10 bg-zinc-800/60" />
-            <Stat value="$50M+" label="Virtual Trades" />
+            <AnimatedStat target={50} prefix="$" suffix="M+" label="Virtual Trades" />
             <div className="w-px h-10 bg-zinc-800/60" />
-            <Stat value="500+" label="Active Leagues" />
+            <AnimatedStat target={500} suffix="+" label="Active Leagues" />
           </div>
         </div>
       </section>
@@ -260,10 +284,44 @@ export default function HomePage() {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function AnimatedStat({ target, label, prefix = "", suffix = "" }: {
+  target: number; label: string; prefix?: string; suffix?: string;
+}) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          const duration = 1800;
+          const startTime = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease-out quart for a snappy feel
+            const eased = 1 - Math.pow(1 - progress, 4);
+            setCount(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, hasAnimated]);
+
   return (
-    <div className="text-center">
-      <div className="text-3xl font-black text-white tabular-nums">{value}</div>
+    <div className="text-center" ref={ref}>
+      <div className="text-3xl font-black text-white tabular-nums">
+        {prefix}{count}{suffix}
+      </div>
       <div className="text-sm text-zinc-500 mt-1">{label}</div>
     </div>
   );
