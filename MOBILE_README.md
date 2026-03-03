@@ -2,6 +2,18 @@
 
 This guide explains how to build and deploy the WallStreet Fantasy mobile app for iOS and Android using Capacitor.
 
+## ⚠️ Important: v0.dev Integration
+
+**Do not merge v0.dev PRs directly!** The v0 bot creates pull requests with experimental changes that often break the build. 
+
+**If you see a v0 PR:**
+1. Review the changes carefully
+2. Test locally before merging
+3. Close the PR if it has errors
+4. Main branch should always remain working
+
+**Current status:** Main branch is stable and deploys successfully.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
