@@ -400,18 +400,22 @@ function FloatingCards() {
 
               {/* Mini sparkline decoration */}
               <div className="mt-2 h-[18px] flex items-end gap-[2px]">
-                {SPARKLINES[i].map((h, j) => (
-                  <div
-                    key={j}
-                    className="flex-1 rounded-sm"
-                    style={{
-                      height: `${h}px`,
-                      background: card.isUp
-                        ? `rgba(16, 185, 129, ${0.15 + (j / 12) * 0.35})`
-                        : `rgba(239, 68, 68, ${0.15 + (j / 12) * 0.35})`,
-                    }}
-                  />
-                ))}
+                {SPARKLINES[i].map((h, j) => {
+                  // Pre-rounded opacity to avoid floating point hydration mismatches
+                  const opacity = Math.round((0.15 + (j / 12) * 0.35) * 100) / 100;
+                  return (
+                    <div
+                      key={j}
+                      className="flex-1 rounded-sm"
+                      style={{
+                        height: `${h}px`,
+                        background: card.isUp
+                          ? `rgba(16, 185, 129, ${opacity})`
+                          : `rgba(239, 68, 68, ${opacity})`,
+                      }}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>
