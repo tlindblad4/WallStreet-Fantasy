@@ -29,7 +29,6 @@ export default function CreateLeaguePage() {
 
     const supabase = createClient();
 
-    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -38,7 +37,6 @@ export default function CreateLeaguePage() {
       return;
     }
 
-    // Create league
     const { data: league, error: leagueError } = await supabase
       .from("leagues")
       .insert({
@@ -60,7 +58,6 @@ export default function CreateLeaguePage() {
       return;
     }
 
-    // Add commissioner as first member
     const { error: memberError } = await supabase
       .from("league_members")
       .insert({
@@ -76,7 +73,6 @@ export default function CreateLeaguePage() {
       return;
     }
 
-    // Generate invite code
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
     const { data: invite } = await supabase
       .from("league_invites")
@@ -97,79 +93,77 @@ export default function CreateLeaguePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <header className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/dashboard" className="text-slate-400 hover:text-white flex items-center gap-2">
+    <div className="min-h-screen bg-zinc-950">
+      <header className="bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-800/60 sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto px-4 py-3 sm:py-4">
+          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 flex items-center gap-2 transition-colors">
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            <span className="text-sm font-medium">Back to Dashboard</span>
           </Link>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8">Create New League</h1>
+      <main className="max-w-3xl mx-auto px-4 py-6 sm:py-8">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-6 sm:mb-8">Create New League</h1>
 
         {inviteCode ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-green-400 mb-4">League Created!</h2>
-            <p className="text-slate-400 mb-6">
+          <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-6 sm:p-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-emerald-400 mb-4">League Created!</h2>
+            <p className="text-zinc-400 text-sm sm:text-base mb-6">
               Share this invite code with friends to join your league:
             </p>
-            <div className="bg-slate-800 rounded-lg px-6 py-4 mb-6">
-              <code className="text-3xl font-mono font-bold">{inviteCode}</code>
+            <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-6 py-4 mb-6">
+              <code className="text-2xl sm:text-3xl font-mono font-bold text-white">{inviteCode}</code>
             </div>
             <Link href="/dashboard">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                Go to Dashboard
-              </Button>
+              <Button>Go to Dashboard</Button>
             </Link>
           </div>
         ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
+          <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5 sm:p-8">
             {error && (
-              <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
                   League Name *
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
                   placeholder="My Fantasy League"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
                   Description
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
                   placeholder="A friendly competition among friends..."
                   rows={3}
                 />
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">
                     Starting Balance
                   </label>
                   <select
                     value={startingBalance}
                     onChange={(e) => setStartingBalance(Number(e.target.value))}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
+                    className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50"
                   >
                     <option value={50000}>$50,000</option>
                     <option value={100000}>$100,000</option>
@@ -179,13 +173,13 @@ export default function CreateLeaguePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Season Length (days)
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">
+                    Season Length
                   </label>
                   <select
                     value={seasonLength}
                     onChange={(e) => setSeasonLength(Number(e.target.value))}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
+                    className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50"
                   >
                     <option value={30}>30 days</option>
                     <option value={60}>60 days</option>
@@ -195,13 +189,13 @@ export default function CreateLeaguePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-sm font-medium text-zinc-400 mb-2">
                     Max Players
                   </label>
                   <select
                     value={maxPlayers}
                     onChange={(e) => setMaxPlayers(Number(e.target.value))}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
+                    className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -211,17 +205,17 @@ export default function CreateLeaguePage() {
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
-                <label className="flex items-center gap-3 cursor-pointer">
+              <div className="bg-zinc-800/40 border border-zinc-700/60 rounded-xl p-4">
+                <label className="flex items-start sm:items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={allowOptions}
                     onChange={(e) => setAllowOptions(e.target.checked)}
-                    className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-blue-500 focus:ring-blue-500"
+                    className="w-5 h-5 rounded border-zinc-600 bg-zinc-700 text-emerald-500 focus:ring-emerald-500 mt-0.5 sm:mt-0"
                   />
                   <div>
-                    <p className="font-medium text-slate-200">Enable Options Trading</p>
-                    <p className="text-sm text-slate-400">
+                    <p className="font-medium text-zinc-200 text-sm sm:text-base">Enable Options Trading</p>
+                    <p className="text-xs sm:text-sm text-zinc-500">
                       Allow members to trade call and put options for advanced strategies
                     </p>
                   </div>
@@ -230,10 +224,18 @@ export default function CreateLeaguePage() {
 
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                size="lg"
+                className="w-full"
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create League"}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    Creating...
+                  </span>
+                ) : (
+                  "Create League"
+                )}
               </Button>
             </form>
           </div>

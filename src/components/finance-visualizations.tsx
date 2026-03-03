@@ -140,16 +140,16 @@ export function HeroStockChart() {
       />
 
       <div className="relative">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Live Chart</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
             <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black tabular-nums text-white">${currentPrice.toFixed(2)}</span>
+              <span className="text-2xl sm:text-3xl font-black tabular-nums text-white">${currentPrice.toFixed(2)}</span>
               <span
-                className={`flex items-center gap-1 text-sm font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}
+                className={`flex items-center gap-1 text-xs sm:text-sm font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}
               >
                 {isUp ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                 {isUp ? "+" : ""}
@@ -157,7 +157,7 @@ export function HeroStockChart() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {["1H", "1D", "1W", "1M"].map((range) => (
               <button
                 key={range}
@@ -293,13 +293,13 @@ export function PortfolioPerformanceChart() {
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-1">
             Portfolio Performance
           </h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-white">${(currentValue / 1000).toFixed(1)}K</span>
+            <span className="text-xl sm:text-2xl font-black text-white">${(currentValue / 1000).toFixed(1)}K</span>
             <span className={`text-xs font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
               {isUp ? "+" : ""}
               {gainPercent}%
@@ -400,12 +400,12 @@ export function VolumeChart() {
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-1">
+          <h3 className="text-xs sm:text-sm font-semibold text-zinc-400 uppercase tracking-widest mb-1">
             Trading Volume (24h)
           </h3>
-          <span className="text-2xl font-black text-white">$24.8M</span>
+          <span className="text-xl sm:text-2xl font-black text-white">$24.8M</span>
         </div>
         <div className="flex items-center gap-4 text-xs text-zinc-500">
           <div className="flex items-center gap-1.5">

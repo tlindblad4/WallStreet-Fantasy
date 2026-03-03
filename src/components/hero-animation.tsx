@@ -358,7 +358,7 @@ function FloatingCards() {
             }}
           >
             <div
-              className="relative backdrop-blur-xl rounded-xl border px-4 py-3 min-w-[150px] shadow-2xl"
+              className={`relative backdrop-blur-xl rounded-xl border px-3 py-2 sm:px-4 sm:py-3 min-w-[120px] sm:min-w-[150px] shadow-2xl ${i >= 4 ? "hidden sm:block" : ""}`}
               style={{
                 background: "rgba(24, 24, 27, 0.7)",
                 borderColor: card.isUp
@@ -439,7 +439,7 @@ function ScanLines() {
 
 export function HeroAnimation() {
   return (
-    <div className="relative w-full h-[600px] md:h-[650px] overflow-hidden rounded-3xl border border-zinc-800/40 bg-zinc-950">
+    <div className="relative w-full h-[350px] sm:h-[500px] md:h-[650px] overflow-hidden rounded-2xl sm:rounded-3xl border border-zinc-800/40 bg-zinc-950">
       {/* Background grid */}
       <div
         className="absolute inset-0 opacity-[0.03]"
@@ -488,7 +488,7 @@ export function HeroAnimation() {
             Live Market Feed
           </span>
         </div>
-        <div className="text-5xl md:text-7xl font-black text-white/[0.07] tracking-tighter select-none">
+        <div className="text-3xl sm:text-5xl md:text-7xl font-black text-white/[0.07] tracking-tighter select-none">
           WALLSTREET
         </div>
       </div>

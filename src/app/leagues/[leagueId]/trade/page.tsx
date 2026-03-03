@@ -259,23 +259,23 @@ export default function TradePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
-      <header className="bg-black/50 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4">
+      <header className="bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-800/60 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link href={`/leagues/${leagueId}`} className="text-gray-400 hover:text-white flex items-center gap-2">
-              <ArrowLeft className="w-5 h-5" />
-              Back
+            <Link href={`/leagues/${leagueId}`} className="text-zinc-500 hover:text-zinc-300 flex items-center gap-2 transition-colors">
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline text-sm">Back</span>
             </Link>
-            <h1 className="text-xl font-bold">Trade</h1>
+            <h1 className="text-base sm:text-xl font-bold">Trade</h1>
             <div className="text-right">
-              <p className="text-sm text-gray-400">Buying Power</p>
-              <p className="text-xl font-bold text-green-400">${cashBalance.toLocaleString()}</p>
+              <p className="text-[10px] sm:text-sm text-zinc-500">Buying Power</p>
+              <p className="text-base sm:text-xl font-bold text-emerald-400">${cashBalance.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-4 py-4 sm:py-6">
         {/* Auto-refresh prices */}
         {memberId && (
           <PortfolioRefresh leagueMemberId={memberId} />
@@ -283,24 +283,25 @@ export default function TradePage() {
 
         {/* Trading Mode Toggle */}
         {allowOptions && (
-          <div className="flex gap-2 mb-6">
+          <div className="flex gap-2 mb-4 sm:mb-6">
             <button
               onClick={() => setTradingMode("assets")}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-colors flex items-center justify-center gap-2 ${
                 tradingMode === "assets"
-                  ? "bg-green-500 text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10"
+                  ? "bg-emerald-500 text-black"
+                  : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800"
               }`}
             >
               <DollarSign className="w-4 h-4" />
-              Stocks & Crypto
+              <span className="hidden sm:inline">Stocks & Crypto</span>
+              <span className="sm:hidden">Assets</span>
             </button>
             <button
               onClick={() => setTradingMode("options")}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-colors flex items-center justify-center gap-2 ${
                 tradingMode === "options"
                   ? "bg-purple-500 text-white"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10"
+                  : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800"
               }`}
             >
               <Activity className="w-4 h-4" />
@@ -312,15 +313,14 @@ export default function TradePage() {
         {tradingMode === "assets" ? (
           <>
             {/* Asset Trading UI */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-4 sm:mb-6">
               {(["all", "stocks", "crypto"] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 rounded-xl font-semibold capitalize transition-colors ${
-                    activeTab === tab ? "bg-green-500 text-black" : "bg-white/5 text-gray-400 hover:bg-white/10"
-                  }`}
-                >
+                  className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold capitalize transition-colors ${
+                    activeTab === tab ? "bg-emerald-500 text-black" : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800"
+                  }`}>
                   {tab === "crypto" ? (
                     <span className="flex items-center justify-center gap-2">
                       <Bitcoin className="w-4 h-4" />Crypto
@@ -331,18 +331,18 @@ export default function TradePage() {
             </div>
 
             {/* Search */}
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-zinc-600" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                  placeholder={activeTab === "crypto" ? "Search crypto (e.g. BTC, ETH)" : "Search stocks (e.g. AAPL, TSLA)"}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+                  placeholder={activeTab === "crypto" ? "Search crypto..." : "Search stocks..."}
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 sm:pl-12 pr-24 py-3 sm:py-4 text-white text-sm sm:text-base placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
                 />
-                <Button onClick={handleSearch} disabled={loading} className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-500 hover:bg-green-600 text-black">
+                <Button onClick={handleSearch} disabled={loading} size="sm" className="absolute right-2 top-1/2 -translate-y-1/2">
                   Search
                 </Button>
               </div>
@@ -350,21 +350,21 @@ export default function TradePage() {
 
             {/* Search Results & Trading Form */}
             {searchResults.length > 0 && (
-              <div className="bg-white/5 rounded-2xl border border-white/10 mb-6 overflow-hidden">
+              <div className="bg-zinc-900/60 rounded-xl border border-zinc-800/60 mb-4 sm:mb-6 overflow-hidden">
                 {searchResults.map((asset) => (
                   <button
                     key={asset.symbol}
                     onClick={() => handleSelectAsset(asset)}
-                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 border-b border-white/5 last:border-0"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between hover:bg-zinc-800/60 border-b border-zinc-800/40 last:border-0 transition-colors"
                   >
-                    <div className="text-left flex items-center gap-3">
-                      {asset.type === "crypto" && <Bitcoin className="w-5 h-5 text-orange-400" />}
+                    <div className="text-left flex items-center gap-2 sm:gap-3">
+                      {asset.type === "crypto" && <Bitcoin className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />}
                       <div>
-                        <p className="font-bold">{asset.displaySymbol || asset.symbol}</p>
-                        <p className="text-sm text-gray-400">{asset.name}</p>
+                        <p className="font-bold text-sm sm:text-base">{asset.displaySymbol || asset.symbol}</p>
+                        <p className="text-xs sm:text-sm text-zinc-500">{asset.name}</p>
                       </div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded ${asset.type === "crypto" ? "bg-orange-500/20 text-orange-400" : "bg-blue-500/20 text-blue-400"}`}>
+                    <span className={`text-[10px] sm:text-xs px-2 py-1 rounded ${asset.type === "crypto" ? "bg-orange-500/10 text-orange-400" : "bg-sky-500/10 text-sky-400"}`}>
                       {asset.type === "crypto" ? "Crypto" : "Stock"}
                     </span>
                   </button>
@@ -373,34 +373,34 @@ export default function TradePage() {
             )}
 
             {selectedAsset && (
-              <div className="bg-white/5 rounded-2xl border border-white/10 p-6 mb-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    {selectedAsset.type === "crypto" && <Bitcoin className="w-8 h-8 text-orange-400" />}
+              <div className="bg-zinc-900/60 rounded-2xl border border-zinc-800/60 p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {selectedAsset.type === "crypto" && <Bitcoin className="w-6 h-6 sm:w-8 sm:h-8 text-orange-400" />}
                     <div>
-                      <h2 className="text-2xl font-bold">{selectedAsset.displaySymbol || selectedAsset.symbol}</h2>
-                      <p className="text-gray-400">{selectedAsset.name}</p>
+                      <h2 className="text-xl sm:text-2xl font-bold">{selectedAsset.displaySymbol || selectedAsset.symbol}</h2>
+                      <p className="text-zinc-500 text-xs sm:text-sm">{selectedAsset.name}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-bold">${selectedAsset.price?.toFixed(2)}</p>
-                    <p className={`text-sm ${(selectedAsset.change || 0) >= 0 ? "text-green-400" : "text-red-400"}`}>
+                    <p className="text-xl sm:text-3xl font-bold">${selectedAsset.price?.toFixed(2)}</p>
+                    <p className={`text-xs sm:text-sm ${(selectedAsset.change || 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {(selectedAsset.change || 0) >= 0 ? "+" : ""}{selectedAsset.change?.toFixed(2)} ({selectedAsset.changePercent?.toFixed(2)}%)
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-2 mb-6">
-                  <button onClick={() => setTradeType("buy")} className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${tradeType === "buy" ? "bg-green-500 text-black" : "bg-white/5 text-gray-400 hover:bg-white/10"}`}>
+                <div className="flex gap-2 mb-4 sm:mb-6">
+                  <button onClick={() => setTradeType("buy")} className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-colors ${tradeType === "buy" ? "bg-emerald-500 text-black" : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800"}`}>
                     Buy
                   </button>
-                  <button onClick={() => setTradeType("sell")} className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${tradeType === "sell" ? "bg-red-500 text-white" : "bg-white/5 text-gray-400 hover:bg-white/10"}`}>
+                  <button onClick={() => setTradeType("sell")} className={`flex-1 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold transition-colors ${tradeType === "sell" ? "bg-red-500 text-white" : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800"}`}>
                     Sell
                   </button>
                 </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm text-gray-400 mb-2">{selectedAsset.type === "crypto" ? "Amount" : "Shares"}</label>
+                <div className="mb-4 sm:mb-6">
+                  <label className="block text-sm text-zinc-400 mb-2">{selectedAsset.type === "crypto" ? "Amount" : "Shares"}</label>
                   <input
                     type="number"
                     value={shares}
@@ -408,16 +408,16 @@ export default function TradePage() {
                     placeholder="0"
                     min="0"
                     step={selectedAsset.type === "crypto" ? "0.0001" : "0.01"}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-2xl font-bold text-white focus:outline-none focus:border-green-500"
+                    className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-xl sm:text-2xl font-bold text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
                   />
                 </div>
 
-                <div className="bg-white/5 rounded-xl p-4 mb-6">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-400">Market Price</span>
+                <div className="bg-zinc-800/40 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                  <div className="flex justify-between mb-2 text-sm">
+                    <span className="text-zinc-500">Market Price</span>
                     <span>${selectedAsset.price?.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-xl font-bold">
+                  <div className="flex justify-between text-lg sm:text-xl font-bold">
                     <span>Estimated Total</span>
                     <span>${total.toFixed(2)}</span>
                   </div>
@@ -425,7 +425,7 @@ export default function TradePage() {
 
                 {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-                <Button onClick={executeTrade} disabled={loading || !shares || parseFloat(shares) <= 0} className={`w-full py-4 rounded-xl font-bold text-lg ${tradeType === "buy" ? "bg-green-500 hover:bg-green-600 text-black" : "bg-red-500 hover:bg-red-600 text-white"}`}>
+                <Button onClick={executeTrade} disabled={loading || !shares || parseFloat(shares) <= 0} size="lg" className={`w-full ${tradeType === "buy" ? "" : "bg-red-500 hover:bg-red-400 shadow-red-500/20"}`}>
                   {loading ? "Processing..." : `${tradeType === "buy" ? "Buy" : "Sell"} ${selectedAsset.displaySymbol || selectedAsset.symbol}`}
                 </Button>
               </div>

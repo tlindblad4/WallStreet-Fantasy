@@ -29,7 +29,6 @@ export default function JoinLeaguePage() {
       return;
     }
 
-    // Find invite
     const { data: invite } = await supabase
       .from("league_invites")
       .select("league_id, uses_count, max_uses")
@@ -48,7 +47,6 @@ export default function JoinLeaguePage() {
       return;
     }
 
-    // Check if already a member
     const { data: existingMember } = await supabase
       .from("league_members")
       .select("id")
@@ -62,14 +60,12 @@ export default function JoinLeaguePage() {
       return;
     }
 
-    // Get league starting balance
     const { data: league } = await supabase
       .from("leagues")
       .select("starting_balance")
       .eq("id", invite.league_id)
       .single();
 
-    // Join league
     const { error: joinError } = await supabase
       .from("league_members")
       .insert({
@@ -85,7 +81,6 @@ export default function JoinLeaguePage() {
       return;
     }
 
-    // Update invite uses
     await supabase
       .from("league_invites")
       .update({ uses_count: invite.uses_count + 1 })
@@ -100,48 +95,47 @@ export default function JoinLeaguePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Header */}
-      <header className="bg-black/50 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-md mx-auto px-4 py-4">
-          <Link href="/dashboard" className="text-gray-400 hover:text-white flex items-center gap-2">
-            <ArrowLeft className="w-5 h-5" />
-            Back
+    <div className="min-h-screen bg-zinc-950">
+      <header className="bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-800/60 sticky top-0 z-50">
+        <div className="max-w-md mx-auto px-4 py-3 sm:py-4">
+          <Link href="/dashboard" className="text-zinc-500 hover:text-zinc-300 flex items-center gap-2 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-medium">Back</span>
           </Link>
         </div>
       </header>
 
-      <main className="max-w-md mx-auto px-4 py-12">
+      <main className="max-w-md mx-auto px-4 py-8 sm:py-12">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-green-400" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Users className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-bold">Join League</h1>
-          <p className="text-gray-400 mt-2">Enter an invite code to join a league</p>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">Join League</h1>
+          <p className="text-zinc-500 text-sm mt-2">Enter an invite code to join a league</p>
         </div>
 
-        <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
+        <div className="bg-zinc-900/60 border border-zinc-800/60 rounded-2xl p-5 sm:p-6">
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-4">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-4 text-sm">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="bg-green-500/20 border border-green-500/50 text-green-400 px-4 py-3 rounded-lg mb-4">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl mb-4 text-sm">
               {success}
             </div>
           )}
 
           <form onSubmit={handleJoin} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Invite Code</label>
+              <label className="block text-sm text-zinc-400 mb-2">Invite Code</label>
               <input
                 type="text"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="ABC123"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold tracking-wider uppercase focus:outline-none focus:border-green-500"
+                className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-3 text-white text-center text-xl sm:text-2xl font-bold tracking-wider uppercase placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
                 maxLength={10}
                 required
               />
@@ -149,18 +143,26 @@ export default function JoinLeaguePage() {
 
             <Button
               type="submit"
-              className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold h-12 rounded-xl"
+              size="lg"
+              className="w-full"
               disabled={loading}
             >
-              {loading ? "Joining..." : "Join League"}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  Joining...
+                </span>
+              ) : (
+                "Join League"
+              )}
             </Button>
           </form>
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            Don&apos;t have a code?{" "}
-            <Link href="/leagues/create" className="text-green-400 hover:text-green-300">
+          <p className="text-zinc-500 text-sm">
+            {"Don't have a code? "}
+            <Link href="/leagues/create" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
               Create your own league
             </Link>
           </p>

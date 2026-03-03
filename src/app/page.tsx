@@ -31,21 +31,22 @@ export default function HomePage() {
       }`}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-shadow duration-300">
                 <TrendingUp className="w-4 h-4 text-black" strokeWidth={2.5} />
               </div>
-              <span className="text-lg font-bold tracking-tight">WallStreet Fantasy</span>
+              <span className="text-base sm:text-lg font-bold tracking-tight">WallStreet Fantasy</span>
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link href="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
                   Sign In
                 </Button>
               </Link>
               <Link href="/register">
-                <Button size="sm">
-                  Get Started
+                <Button size="sm" className="text-xs sm:text-sm px-2.5 sm:px-3">
+                  <span className="hidden sm:inline">Get Started</span>
+                  <span className="sm:hidden">Start</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>
@@ -55,7 +56,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-40 pb-28 px-6">
+      <section className="relative pt-28 sm:pt-40 pb-16 sm:pb-28 px-4 sm:px-6">
         {/* Animated background glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-500/8 rounded-full blur-[120px] pointer-events-none hero-glow-pulse" />
         <div className="absolute top-40 left-1/4 w-[300px] h-[300px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none hero-glow-pulse" style={{ animationDelay: "2s" }} />
@@ -72,7 +73,7 @@ export default function HomePage() {
           </div>
 
           {/* Heading - stagger 200ms */}
-          <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-none text-balance">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-none text-balance">
             <span className="block text-white hero-fade-up" style={{ animationDelay: "0.3s" }}>
               Fantasy Sports.
             </span>
@@ -83,7 +84,7 @@ export default function HomePage() {
 
           {/* Subtitle - stagger 600ms */}
           <p
-            className="text-lg md:text-xl text-zinc-400 max-w-xl mx-auto mb-12 leading-relaxed text-pretty hero-fade-up"
+            className="text-base sm:text-lg md:text-xl text-zinc-400 max-w-xl mx-auto mb-8 sm:mb-12 leading-relaxed text-pretty hero-fade-up"
             style={{ animationDelay: "0.7s" }}
           >
             Start with $100K virtual cash. Trade stocks & crypto (BTC, ETH, SOL). 
@@ -117,24 +118,26 @@ export default function HomePage() {
 
           {/* Stats row - fade in */}
           <div
-            className="flex items-center justify-center gap-12 mt-16 pt-12 border-t border-zinc-800/40 hero-fade-in"
+            className="flex items-center justify-center gap-6 sm:gap-12 mt-10 sm:mt-16 pt-8 sm:pt-12 border-t border-zinc-800/40 hero-fade-in"
             style={{ animationDelay: "1.5s" }}
           >
             <AnimatedStat target={10} suffix="K+" label="Active Traders" />
-            <div className="w-px h-10 bg-zinc-800/60" />
+            <div className="w-px h-8 sm:h-10 bg-zinc-800/60" />
             <AnimatedStat target={50} prefix="$" suffix="M+" label="Virtual Trades" />
-            <div className="w-px h-10 bg-zinc-800/60" />
-            <AnimatedStat target={500} suffix="+" label="Active Leagues" />
+            <div className="w-px h-8 sm:h-10 bg-zinc-800/60 hidden sm:block" />
+            <div className="hidden sm:block">
+              <AnimatedStat target={500} suffix="+" label="Active Leagues" />
+            </div>
           </div>
         </div>
       </section>
 
       {/* Market Dashboard Visualizations */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 sm:mb-14">
             <span className="text-xs font-semibold text-emerald-400 uppercase tracking-[0.2em] mb-3 block">Analytics</span>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">Market Dashboard</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">Market Dashboard</h2>
             <p className="text-zinc-400 text-lg">Real-time data powering every trade</p>
           </div>
 
@@ -162,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* Live Tickers */}
-      <section className="py-16 px-6 border-y border-zinc-800/40 bg-zinc-900/30">
+      <section className="py-12 sm:py-16 px-4 sm:px-6 border-y border-zinc-800/40 bg-zinc-900/30">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-[0.2em]">Market Snapshot</h3>
@@ -181,11 +184,11 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-28 px-6">
+      <section id="how-it-works" className="py-16 sm:py-28 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 sm:mb-16">
             <span className="text-xs font-semibold text-emerald-400 uppercase tracking-[0.2em] mb-3 block">Getting Started</span>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">How It Works</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">How It Works</h2>
             <p className="text-zinc-400 text-lg">Up and trading in under 2 minutes</p>
           </div>
 
@@ -198,15 +201,15 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-6 bg-zinc-900/30 border-y border-zinc-800/40">
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 bg-zinc-900/30 border-y border-zinc-800/40">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 sm:mb-16">
             <span className="text-xs font-semibold text-emerald-400 uppercase tracking-[0.2em] mb-3 block">Features</span>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">Everything You Need</h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 text-balance">Everything You Need</h2>
             <p className="text-zinc-400 text-lg">Built for competitive traders</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <FeatureCard
               icon={<Zap className="w-5 h-5 text-emerald-400" />}
               title="Real-Time Prices"
@@ -242,17 +245,17 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-28 px-6">
+      <section className="py-16 sm:py-28 px-4 sm:px-6">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="relative bg-zinc-900/60 border border-zinc-800/60 rounded-3xl p-14 overflow-hidden">
+          <div className="relative bg-zinc-900/60 border border-zinc-800/60 rounded-2xl sm:rounded-3xl p-8 sm:p-14 overflow-hidden">
             {/* CTA background glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-emerald-500/8 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4 text-balance">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4 text-balance">
                 Ready to compete?
               </h2>
-              <p className="text-zinc-400 text-lg mb-10">
+              <p className="text-zinc-400 text-base sm:text-lg mb-8 sm:mb-10">
                 Create your account in seconds. No credit card required.
               </p>
               <Link href="/register">
@@ -267,8 +270,8 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/40 py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-zinc-800/40 py-8 sm:py-10 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center">
               <TrendingUp className="w-3.5 h-3.5 text-black" strokeWidth={2.5} />
@@ -319,10 +322,10 @@ function AnimatedStat({ target, label, prefix = "", suffix = "" }: {
 
   return (
     <div className="text-center" ref={ref}>
-      <div className="text-3xl font-black text-white tabular-nums">
+      <div className="text-2xl sm:text-3xl font-black text-white tabular-nums">
         {prefix}{count}{suffix}
       </div>
-      <div className="text-sm text-zinc-500 mt-1">{label}</div>
+      <div className="text-xs sm:text-sm text-zinc-500 mt-1">{label}</div>
     </div>
   );
 }

@@ -33,18 +33,18 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header */}
       <header className="bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-800/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center group-hover:shadow-lg group-hover:shadow-emerald-500/20 transition-shadow duration-300">
                 <TrendingUp className="w-4 h-4 text-black" strokeWidth={2.5} />
               </div>
-              <span className="text-lg font-bold tracking-tight">WallStreet Fantasy</span>
+              <span className="hidden sm:inline text-lg font-bold tracking-tight">WallStreet Fantasy</span>
             </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-zinc-500">{session.user.email}</span>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm text-zinc-500 truncate max-w-[120px] sm:max-w-none">{session.user.email}</span>
               <form action="/api/auth/logout" method="post">
-                <Button type="submit" variant="outline" size="sm">
+                <Button type="submit" variant="outline" size="sm" className="text-xs sm:text-sm">
                   Logout
                 </Button>
               </form>
@@ -53,15 +53,15 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Page title */}
-        <div className="mb-10">
+        <div className="mb-6 sm:mb-10">
           <span className="text-xs font-semibold text-emerald-400 uppercase tracking-[0.2em] mb-2 block">Overview</span>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">Dashboard</h1>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10">
           <StatCard
             title="Active Leagues"
             value={leagues.length.toString()}
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mb-10">
+        <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-10">
           <Link href="/leagues/create">
             <Button>
               <Plus className="w-4 h-4" />
