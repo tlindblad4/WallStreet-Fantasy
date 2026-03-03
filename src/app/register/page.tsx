@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
+import { ArrowLeft, TrendingUp, User, Mail, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,6 @@ export default function RegisterPage() {
 
     const supabase = createClient();
 
-    // Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -35,7 +35,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // Create profile
     if (authData.user) {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authData.user.id,
@@ -55,83 +54,151 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-            WallStreet Fantasy
-          </h1>
-          <p className="text-slate-400 mt-2">Create your account</p>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/6 rounded-full blur-[120px] pointer-events-none hero-glow-pulse" />
+      <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-teal-500/4 rounded-full blur-[100px] pointer-events-none hero-glow-pulse" style={{ animationDelay: "2s" }} />
+      <div className="absolute top-1/3 right-1/4 w-[250px] h-[250px] bg-emerald-600/3 rounded-full blur-[100px] pointer-events-none hero-glow-pulse" style={{ animationDelay: "3s" }} />
+
+      {/* Subtle grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+          backgroundSize: "60px 60px",
+        }}
+      />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back link */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors mb-8 hero-fade-up"
+          style={{ animationDelay: "0.05s" }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </Link>
+
+        {/* Header */}
+        <div className="text-center mb-8 hero-fade-up" style={{ animationDelay: "0.15s" }}>
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+            </div>
+            <span className="text-xl font-bold text-white tracking-tight">WallStreet Fantasy</span>
+          </div>
+          <p className="text-zinc-500 text-sm">Create your trading account</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
+        {/* Card */}
+        <div
+          className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-sm hero-scale-in"
+          style={{ animationDelay: "0.3s" }}
+        >
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div className="hero-fade-up" style={{ animationDelay: "0.45s" }}>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
                 Username
               </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                placeholder="trader123"
-                required
-              />
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+                  placeholder="trader123"
+                  required
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+            <div className="hero-fade-up" style={{ animationDelay: "0.55s" }}>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
                 Email
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                placeholder="you@example.com"
-                required
-              />
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
+            <div className="hero-fade-up" style={{ animationDelay: "0.65s" }}>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+                  placeholder="Min 6 characters"
+                  required
+                  minLength={6}
+                />
+              </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
-            >
-              {loading ? "Creating account..." : "Create Account"}
-            </Button>
+            <div className="hero-fade-up" style={{ animationDelay: "0.75s" }}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    Creating account...
+                  </span>
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
+            </div>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-slate-400">
+          <div
+            className="mt-6 pt-6 border-t border-zinc-800/60 text-center hero-fade-in"
+            style={{ animationDelay: "0.9s" }}
+          >
+            <p className="text-sm text-zinc-500">
               Already have an account?{" "}
-              <Link href="/login" className="text-blue-400 hover:text-blue-300">
+              <Link
+                href="/login"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+              >
                 Sign in
               </Link>
             </p>
           </div>
+        </div>
+
+        {/* Trust badge */}
+        <div
+          className="text-center mt-6 hero-fade-in"
+          style={{ animationDelay: "1.0s" }}
+        >
+          <p className="text-xs text-zinc-600">
+            Start with $100K virtual cash. No real money required.
+          </p>
         </div>
       </div>
     </div>
