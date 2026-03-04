@@ -73,13 +73,13 @@ export default async function DashboardPage() {
         {/* Actions */}
         <div className="flex gap-4 mb-8">
           <Link href="/leagues/create">
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button>
               <Plus className="w-4 h-4 mr-2" />
               Create League
             </Button>
           </Link>
           <Link href="/leagues/join">
-            <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-500">
+            <Button variant="outline">
               <Users className="w-4 h-4 mr-2" />
               Join League
             </Button>

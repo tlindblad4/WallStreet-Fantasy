@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, TicketCheck, Loader2 } from "lucide-react";
 
 export default function JoinLeaguePage() {
   const [inviteCode, setInviteCode] = useState("");
@@ -101,65 +101,91 @@ export default function JoinLeaguePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <header className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/dashboard" className="text-slate-400 hover:text-white flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background glows */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/6 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-teal-500/4 rounded-full blur-[100px] pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Back link */}
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-300 transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm font-medium">Back to Dashboard</span>
+        </Link>
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+              <TicketCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Join a League</h1>
+          <p className="text-zinc-500 text-sm mt-2">Enter your invite code to join</p>
         </div>
-      </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8">Join a League</h1>
-
+        {/* Card */}
         {success ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center">
-            <Users className="w-12 h-12 text-green-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-400 mb-4">Welcome to the League!</h2>
-            <p className="text-slate-400">
-              You've successfully joined. Redirecting you now...
+          <div className="bg-zinc-900/60 border border-emerald-500/30 rounded-2xl p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-emerald-400" />
+            </div>
+            <h2 className="text-xl font-bold text-emerald-400 mb-2">Welcome!</h2>
+            <p className="text-zinc-400 text-sm">
+              You've successfully joined the league. Redirecting...
             </p>
           </div>
         ) : (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-8">
+          <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-sm">
             {error && (
-              <div className="bg-red-500/20 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
                   Invite Code
                 </label>
-                <input
-                  type="text"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white font-mono text-lg uppercase tracking-wider focus:outline-none focus:border-blue-500"
-                  placeholder="ABC123"
-                  maxLength={8}
-                  required
-                />
-                <p className="text-slate-500 text-sm mt-2">
-                  Enter the invite code from your friend
+                <div className="relative">
+                  <TicketCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                  <input
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-4 py-3 text-white font-mono text-lg uppercase tracking-wider placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+                    placeholder="ABC123"
+                    maxLength={8}
+                    required
+                  />
+                </div>
+                <p className="text-zinc-500 text-sm mt-2">
+                  Ask your friend for their invite code
                 </p>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
-                disabled={loading}
+                className="w-full"
+                disabled={loading || !inviteCode.trim()}
               >
-                {loading ? "Joining..." : "Join League"}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Joining...
+                  </>
+                ) : (
+                  "Join League"
+                )}
               </Button>
             </form>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }
