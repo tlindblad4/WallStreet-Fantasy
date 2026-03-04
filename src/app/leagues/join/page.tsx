@@ -19,85 +19,113 @@ export default function JoinLeaguePage() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      setError("You must be logged in");
-      setLoading(false);
-      return;
+      // Check user auth
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setError("You must be logged in");
+        setLoading(false);
+        return;
+      }
+
+      // Find invite - use maybeSingle to avoid errors
+      const { data: invite, error: inviteError } = await supabase
+        .from("league_invites")
+        .select("league_id, uses_count, max_uses, invite_code")
+        .ilike("invite_code", inviteCode.trim())
+        .maybeSingle();
+
+      if (inviteError) {
+        console.error("Invite lookup error:", inviteError);
+        setError("Error looking up invite code");
+        setLoading(false);
+        return;
+      }
+
+      if (!invite) {
+        setError("Invalid invite code. Please check and try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (invite.uses_count >= invite.max_uses) {
+        setError("This invite code has reached its maximum uses");
+        setLoading(false);
+        return;
+      }
+
+      // Check if already a member - use maybeSingle
+      const { data: existingMember } = await supabase
+        .from("league_members")
+        .select("id")
+        .eq("league_id", invite.league_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingMember) {
+        setError("You're already a member of this league");
+        setLoading(false);
+        return;
+      }
+
+      // Get league info
+      const { data: league, error: leagueError } = await supabase
+        .from("leagues")
+        .select("starting_balance")
+        .eq("id", invite.league_id)
+        .single();
+
+      if (leagueError || !league) {
+        console.error("League lookup error:", leagueError);
+        setError("Error finding league");
+        setLoading(false);
+        return;
+      }
+
+      // Join league
+      const { error: joinError } = await supabase
+        .from("league_members")
+        .insert({
+          league_id: invite.league_id,
+          user_id: user.id,
+          status: "active",
+          cash_balance: league.starting_balance || 100000,
+          total_value: league.starting_balance || 100000,
+        });
+
+      if (joinError) {
+        console.error("Join error:", joinError);
+        setError(joinError.message);
+        setLoading(false);
+        return;
+      }
+
+      // Update invite count
+      const { error: updateError } = await supabase
+        .from("league_invites")
+        .update({ uses_count: invite.uses_count + 1 })
+        .eq("invite_code", invite.invite_code);
+
+      if (updateError) {
+        console.error("Update invite error:", updateError);
+        // Don't fail if update fails, user already joined
+      }
+
+      setSuccess(true);
+      
+      // Redirect to league after 2 seconds
+      setTimeout(() => {
+        router.push(`/leagues/${invite.league_id}`);
+      }, 2000);
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      setError("An unexpected error occurred. Please try again.");
     }
 
-    // Find invite
-    const { data: invite, error: inviteError } = await supabase
-      .from("league_invites")
-      .select("league_id, uses_count, max_uses")
-      .eq("invite_code", inviteCode.toUpperCase())
-      .single();
-
-    if (inviteError || !invite) {
-      setError("Invalid invite code");
-      setLoading(false);
-      return;
-    }
-
-    if (invite.uses_count >= invite.max_uses) {
-      setError("This invite code has reached its maximum uses");
-      setLoading(false);
-      return;
-    }
-
-    // Check if already a member
-    const { data: existingMember } = await supabase
-      .from("league_members")
-      .select("id")
-      .eq("league_id", invite.league_id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (existingMember) {
-      setError("You're already a member of this league");
-      setLoading(false);
-      return;
-    }
-
-    // Get league info for starting balance
-    const { data: league } = await supabase
-      .from("leagues")
-      .select("starting_balance")
-      .eq("id", invite.league_id)
-      .single();
-
-    // Join league
-    const { error: joinError } = await supabase
-      .from("league_members")
-      .insert({
-        league_id: invite.league_id,
-        user_id: user.id,
-        status: "active",
-        cash_balance: league?.starting_balance || 100000,
-      });
-
-    if (joinError) {
-      setError(joinError.message);
-      setLoading(false);
-      return;
-    }
-
-    // Update invite count
-    await supabase
-      .from("league_invites")
-      .update({ uses_count: invite.uses_count + 1 })
-      .eq("invite_code", inviteCode.toUpperCase());
-
-    setSuccess(true);
     setLoading(false);
-
-    // Redirect to league after 2 seconds
-    setTimeout(() => {
-      router.push(`/leagues/${invite.league_id}`);
-    }, 2000);
   };
 
   return (
@@ -135,7 +163,7 @@ export default function JoinLeaguePage() {
             </div>
             <h2 className="text-xl font-bold text-emerald-400 mb-2">Welcome!</h2>
             <p className="text-zinc-400 text-sm">
-              You've successfully joined the league. Redirecting...
+              You&apos;ve successfully joined the league. Redirecting...
             </p>
           </div>
         ) : (
@@ -158,8 +186,8 @@ export default function JoinLeaguePage() {
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                     className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl pl-10 pr-4 py-3 text-white font-mono text-lg uppercase tracking-wider placeholder-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
-                    placeholder="ABC123"
-                    maxLength={8}
+                    placeholder="ABC12345"
+                    maxLength={10}
                     required
                   />
                 </div>
