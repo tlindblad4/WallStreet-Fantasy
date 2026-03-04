@@ -51,6 +51,14 @@ export default async function LeaguePage({
     .select("*")
     .eq("league_member_id", member?.id);
 
+  // Calculate actual total value (cash + holdings)
+  const holdingsValue = (holdings || []).reduce((sum, h) => sum + (h.current_value || 0), 0);
+  const cashBalance = member?.cash_balance || 0;
+  const calculatedTotalValue = cashBalance + holdingsValue;
+  const startingBalance = league?.starting_balance || 100000;
+  const calculatedReturn = calculatedTotalValue - startingBalance;
+  const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
+
   // Get invite code
   const { data: invite } = await supabase
     .from("league_invites")
@@ -87,17 +95,20 @@ export default async function LeaguePage({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white/5 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Portfolio Value</p>
-            <p className="text-xl font-bold">${member?.total_value?.toLocaleString() || "0"}</p>
+            <p className="text-xl font-bold">${calculatedTotalValue.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Cash + Holdings</p>
           </div>
           <div className="bg-white/5 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Cash</p>
-            <p className="text-xl font-bold text-green-400">${member?.cash_balance?.toLocaleString() || "0"}</p>
+            <p className="text-xl font-bold text-green-400">${cashBalance.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 mt-1">Available to trade</p>
           </div>
           <div className="bg-white/5 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Return</p>
-            <p className={`text-xl font-bold ${member?.total_return_percent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {member?.total_return_percent >= 0 ? '+' : ''}{member?.total_return_percent?.toFixed(1) || "0"}%
+            <p className={`text-xl font-bold ${calculatedReturnPercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {calculatedReturnPercent >= 0 ? '+' : ''}{calculatedReturnPercent.toFixed(1)}%
             </p>
+            <p className="text-xs text-gray-500 mt-1">${calculatedReturn >= 0 ? '+' : ''}{calculatedReturn.toLocaleString()}</p>
           </div>
           <div className="bg-white/5 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Rank</p>
@@ -123,10 +134,10 @@ export default async function LeaguePage({
         <div className="mb-8">
           <PortfolioChart
             metrics={{
-              totalValue: member?.total_value || 100000,
-              cashBalance: member?.cash_balance || 100000,
-              totalReturn: member?.total_return || 0,
-              totalReturnPercent: member?.total_return_percent || 0,
+              totalValue: calculatedTotalValue,
+              cashBalance: cashBalance,
+              totalReturn: calculatedReturn,
+              totalReturnPercent: calculatedReturnPercent,
               dayChange: 0,
               dayChangePercent: 0,
               bestPerformer: holdings && holdings.length > 0
