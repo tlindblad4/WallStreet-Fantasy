@@ -93,8 +93,19 @@ export async function POST(request: Request) {
       .single();
 
     if (member) {
+      // Get the actual starting balance from the league
+      const { data: leagueData } = await supabase
+        .from("league_members")
+        .select(`
+          league_id,
+          leagues:league_id(starting_balance)
+        `)
+        .eq("id", leagueMemberId)
+        .single();
+
+      // leagues comes back as an array from the relation
+      const startingBalance = leagueData?.leagues?.[0]?.starting_balance || 100000;
       const totalValue = member.cash_balance + totalHoldingsValue;
-      const startingBalance = 100000; // Default, could be fetched from league
       const totalReturn = totalValue - startingBalance;
       const totalReturnPercent = startingBalance > 0 ? (totalReturn / startingBalance) * 100 : 0;
 

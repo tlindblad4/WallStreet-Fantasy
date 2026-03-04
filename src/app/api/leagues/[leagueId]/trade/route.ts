@@ -110,7 +110,21 @@ export async function POST(
         symbol: symbol.toUpperCase(),
         shares,
         average_cost: price_per_share,
+        current_price: price_per_share,
+        current_value: shares * price_per_share,
       });
+    }
+
+    // Trigger portfolio value update
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/portfolio/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leagueMemberId: member.id }),
+      });
+    } catch (err) {
+      console.error("Failed to update portfolio values:", err);
+      // Don't fail the trade if portfolio update fails
     }
 
     return NextResponse.json({ success: true, trade });
