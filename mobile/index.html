@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     <title>WallStreet Fantasy</title>
     <style>
         * {
@@ -13,20 +14,26 @@
             box-sizing: border-box;
         }
         
-        body {
+        html, body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #0a0a0a;
-            height: 100vh;
+            height: 100%;
+            width: 100%;
             overflow: hidden;
         }
         
-        #app-container {
+        #app-frame {
             width: 100%;
             height: 100%;
             border: none;
+            display: none;
         }
         
-        .loading {
+        #app-frame.loaded {
+            display: block;
+        }
+        
+        .loading-screen {
             position: fixed;
             top: 0;
             left: 0;
@@ -41,9 +48,39 @@
             transition: opacity 0.3s ease;
         }
         
-        .loading.hidden {
+        .loading-screen.hidden {
             opacity: 0;
             pointer-events: none;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        }
+        
+        .logo-icon svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+        
+        .logo-text {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
         .spinner {
@@ -60,79 +97,203 @@
         }
         
         .loading-text {
-            color: #a1a1aa;
-            margin-top: 16px;
+            color: #71717a;
+            margin-top: 20px;
             font-size: 14px;
         }
         
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #10b981;
-            margin-bottom: 24px;
+        .error-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .error-screen.visible {
+            display: flex;
+        }
+        
+        .error-icon {
+            width: 60px;
+            height: 60px;
+            background: #ef4444/20;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .error-icon svg {
+            width: 30px;
+            height: 30px;
+            color: #ef4444;
+        }
+        
+        .error-title {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .error-message {
+            color: #71717a;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .retry-button {
+            background: #10b981;
+            color: #0a0a0a;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .retry-button:hover {
+            background: #34d399;
+        }
+        
+        .retry-button:active {
+            transform: scale(0.98);
         }
     </style>
 </head>
 <body>
-    <div id="loading" class="loading">
-        <div class="logo">WallStreet Fantasy</div>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                    <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+            </div>
+            <div class="logo-text">WallStreet Fantasy</div>
+        </div>
         <div class="spinner"></div>
-        <div class="loading-text">Loading...</div>
+        <div class="loading-text">Loading your portfolio...</div>
     </div>
     
+    <!-- Error Screen -->
+    <div id="error" class="error-screen">
+        <div class="error-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <div class="error-title">Connection Error</div>
+        <div class="error-message" id="error-message">
+            Unable to connect to WallStreet Fantasy. Please check your internet connection and try again.
+        </div>
+        <button class="retry-button" onclick="retryLoad()">Try Again</button>
+    </div>
+    
+    <!-- App Frame -->
     <iframe 
-        id="app-container"
+        id="app-frame"
         src="https://wall-street-fantasy.vercel.app"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
         allow="camera; microphone; geolocation"
     ></iframe>
 
     <script>
-        // Hide loading screen when iframe loads
-        const iframe = document.getElementById('app-container');
+        const iframe = document.getElementById('app-frame');
         const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('error-message');
         
+        let loadTimeout;
+        
+        function showApp() {
+            clearTimeout(loadTimeout);
+            iframe.classList.add('loaded');
+            loading.classList.add('hidden');
+            error.classList.remove('visible');
+        }
+        
+        function showError(message) {
+            clearTimeout(loadTimeout);
+            loading.classList.add('hidden');
+            error.classList.add('visible');
+            if (message) {
+                errorMessage.textContent = message;
+            }
+        }
+        
+        function retryLoad() {
+            loading.classList.remove('hidden');
+            error.classList.remove('visible');
+            iframe.classList.remove('loaded');
+            iframe.src = iframe.src;
+            startLoadTimer();
+        }
+        
+        function startLoadTimer() {
+            clearTimeout(loadTimeout);
+            loadTimeout = setTimeout(() => {
+                showError('The app is taking longer than expected to load. Please check your connection.');
+            }, 15000); // 15 second timeout
+        }
+        
+        // Start loading
+        startLoadTimer();
+        
+        // Hide loading when iframe loads
         iframe.addEventListener('load', function() {
-            setTimeout(() => {
-                loading.classList.add('hidden');
-            }, 1000);
+            // Give it a moment to render
+            setTimeout(showApp, 500);
         });
         
         // Handle errors
         iframe.addEventListener('error', function() {
-            document.querySelector('.loading-text').textContent = 'Failed to load. Please check your connection.';
+            showError('Failed to load the app. Please check your internet connection.');
         });
         
         // Bridge for Capacitor native features
         window.addEventListener('message', function(event) {
-            // Handle messages from the web app
             if (event.data && event.data.type) {
                 switch(event.data.type) {
                     case 'PUSH_NOTIFICATION':
-                        // Native push notification
                         if (window.Capacitor) {
                             window.Capacitor.Plugins.PushNotifications.schedule(event.data.payload);
                         }
                         break;
                     case 'BIOMETRIC_AUTH':
-                        // Face ID / Touch ID
                         if (window.Capacitor) {
                             window.Capacitor.Plugins.BiometricAuth.authenticate(event.data.payload);
                         }
                         break;
-                    case 'STORAGE':
-                        // Secure storage
-                        if (window.Capacitor) {
-                            const { key, value } = event.data.payload;
-                            if (value) {
-                                window.Capacitor.Plugins.Preferences.set({ key, value });
-                            } else {
-                                window.Capacitor.Plugins.Preferences.get({ key });
-                            }
-                        }
-                        break;
                 }
             }
+        });
+        
+        // Check online status
+        window.addEventListener('online', () => {
+            if (error.classList.contains('visible')) {
+                retryLoad();
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            showError('You are offline. Please check your internet connection.');
         });
     </script>
 </body>
