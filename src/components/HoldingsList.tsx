@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { TrendingUp, TrendingDown, DollarSign, Package } from "lucide-react";
 
 interface Holding {
@@ -69,10 +70,10 @@ export default function HoldingsList({ holdings, onSelect }: HoldingsListProps) 
           const costBasis = holding.shares * holding.average_cost;
 
           return (
-            <div
+            <Link
               key={holding.symbol}
-              onClick={() => onSelect?.(holding)}
-              className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer"
+              href={`/asset/${holding.symbol}`}
+              className="bg-white/5 rounded-xl p-4 hover:bg-white/10 transition-colors cursor-pointer block"
             >
               <div className="flex items-center justify-between">
                 {/* Left: Symbol & Shares */}
@@ -125,7 +126,7 @@ export default function HoldingsList({ holdings, onSelect }: HoldingsListProps) 
                   {((currentValue / totalValue) * 100).toFixed(1)}% of portfolio
                 </p>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
