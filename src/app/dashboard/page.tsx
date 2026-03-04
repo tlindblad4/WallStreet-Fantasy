@@ -2,9 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, TrendingUp, Plus, ArrowLeft, TrendingUpIcon } from "lucide-react";
+import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
-import PortfolioRefresh from "@/components/PortfolioRefresh";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -15,6 +14,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // Get memberships with league info
   const { data: memberships } = await supabase
     .from("league_members")
     .select(`
@@ -23,18 +23,49 @@ export default async function DashboardPage() {
       total_value,
       total_return_percent,
       current_rank,
-      league:leagues(id, name, status, season_start_date, season_end_date, commissioner_id)
+      league:leagues(id, name, status, season_start_date, season_end_date, commissioner_id, starting_balance)
     `)
     .eq("user_id", session.user.id)
     .eq("status", "active");
 
   const leagues = memberships || [];
+  
   // Fix: league comes back as an array from Supabase relation
   const normalizedLeagues = leagues.map(l => ({
     ...l,
     league: Array.isArray(l.league) ? l.league[0] : l.league
   }));
-  const leagueMembersForRefresh = normalizedLeagues.map(l => ({ id: l.id, league_id: l.league?.id }));
+
+  // Fetch holdings for each league to calculate actual portfolio values
+  const leaguesWithCalculatedValues = await Promise.all(
+    normalizedLeagues.map(async (membership) => {
+      const { data: holdings } = await supabase
+        .from("portfolio_holdings")
+        .select("current_value")
+        .eq("league_member_id", membership.id);
+
+      const holdingsValue = (holdings || []).reduce((sum, h) => sum + (h.current_value || 0), 0);
+      const cashBalance = membership.cash_balance || 0;
+      const calculatedTotalValue = cashBalance + holdingsValue;
+      const startingBalance = membership.league?.starting_balance || 100000;
+      const calculatedReturn = calculatedTotalValue - startingBalance;
+      const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
+
+      return {
+        ...membership,
+        calculatedTotalValue,
+        calculatedReturn,
+        calculatedReturnPercent,
+        holdingsValue,
+      };
+    })
+  );
+
+  // Calculate totals across all leagues
+  const totalPortfolioValue = leaguesWithCalculatedValues.reduce((sum, l) => sum + l.calculatedTotalValue, 0);
+  const avgReturn = leaguesWithCalculatedValues.length > 0
+    ? leaguesWithCalculatedValues.reduce((sum, l) => sum + l.calculatedReturnPercent, 0) / leaguesWithCalculatedValues.length
+    : 0;
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -61,30 +92,21 @@ export default async function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Portfolio Refresh - Updates values from market */}
-        {leagues.length > 0 && (
-          <div className="mb-8">
-            {leagues.map((membership) => (
-              <PortfolioRefresh key={membership.id} leagueMemberId={membership.id} />
-            ))}
-          </div>
-        )}
-
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatCard
             title="Active Leagues"
-            value={normalizedLeagues.length.toString()}
+            value={leaguesWithCalculatedValues.length.toString()}
             icon={<Trophy className="w-6 h-6 text-yellow-400" />}
           />
           <StatCard
             title="Total Portfolio Value"
-            value={`$${normalizedLeagues.reduce((sum, l) => sum + (l.total_value || 0), 0).toLocaleString()}`}
+            value={`$${totalPortfolioValue.toLocaleString()}`}
             icon={<TrendingUp className="w-6 h-6 text-emerald-400" />}
           />
           <StatCard
             title="Avg. Return"
-            value={`${(normalizedLeagues.reduce((sum, l) => sum + (l.total_return_percent || 0), 0) / (normalizedLeagues.length || 1)).toFixed(1)}%`}
+            value={`${avgReturn.toFixed(1)}%`}
             icon={<Users className="w-6 h-6 text-blue-400" />}
           />
         </div>
@@ -108,7 +130,7 @@ export default async function DashboardPage() {
         {/* Leagues */}
         <div>
           <h2 className="text-2xl font-bold mb-6">Your Leagues</h2>
-          {normalizedLeagues.length === 0 ? (
+          {leaguesWithCalculatedValues.length === 0 ? (
             <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-12 text-center">
               <Trophy className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No leagues yet</h3>
@@ -123,7 +145,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {normalizedLeagues.map((membership) => (
+              {leaguesWithCalculatedValues.map((membership) => (
                 <LeagueCard 
                   key={membership.id} 
                   membership={membership} 
@@ -182,21 +204,19 @@ function LeagueCard({ membership, currentUserId }: { membership: any; currentUse
           <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-zinc-800">
             <div>
               <p className="text-zinc-400 text-sm">Portfolio Value</p>
-              <p className="text-lg font-semibold">${membership.total_value?.toLocaleString()}</p>
+              <p className="text-lg font-semibold">${membership.calculatedTotalValue.toLocaleString()}</p>
             </div>
             <div>
               <p className="text-zinc-400 text-sm">Cash</p>
               <p className="text-lg font-semibold text-emerald-400">${membership.cash_balance?.toLocaleString()}</p>
             </div>
           </div>
-          
           <div className="mt-4">
             <p className="text-zinc-400 text-sm">Return</p>
             <p className={`text-lg font-semibold ${
-              membership.total_return_percent >= 0 ? 'text-emerald-400' : 'text-red-400'
+              membership.calculatedReturnPercent >= 0 ? 'text-emerald-400' : 'text-red-400'
             }`}>
-              {membership.total_return_percent >= 0 ? '+' : ''}
-              {membership.total_return_percent?.toFixed(2)}%
+              {membership.calculatedReturnPercent >= 0 ? '+' : ''}{membership.calculatedReturnPercent.toFixed(2)}%
             </p>
           </div>
         </div>
