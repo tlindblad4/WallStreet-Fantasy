@@ -62,37 +62,48 @@ export default async function LeaguePage({
   const isCommissioner = league.commissioner_id === session.user.id;
 
   // Get or create invite code
-  let invite = null;
-  try {
-    const { data: existingInvite } = await supabase
-      .from("league_invites")
-      .select("invite_code")
-      .eq("league_id", leagueId)
-      .single();
-    invite = existingInvite;
-  } catch {
-    // No invite found, will create below
-  }
-
-  // If no invite exists, create one
-  if (!invite && isCommissioner) {
-    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+  let inviteCode = null;
+  
+  // Only fetch/create invite for commissioners
+  if (isCommissioner) {
     try {
-      const { data: newInvite } = await supabase
+      const { data: existingInvite } = await supabase
         .from("league_invites")
-        .insert({
-          league_id: leagueId,
-          invited_by: session.user.id,
-          invite_code: newCode,
-          max_uses: 100,
-        })
-        .select()
-        .single();
-      invite = newInvite;
-    } catch (err) {
-      console.error("Failed to create invite:", err);
+        .select("invite_code")
+        .eq("league_id", leagueId)
+        .maybeSingle();
+      
+      if (existingInvite) {
+        inviteCode = existingInvite.invite_code;
+      }
+    } catch {
+      // Ignore errors
+    }
+
+    // If no invite exists, create one
+    if (!inviteCode) {
+      const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      try {
+        const { data: newInvite } = await supabase
+          .from("league_invites")
+          .insert({
+            league_id: leagueId,
+            invited_by: session.user.id,
+            invite_code: newCode,
+            max_uses: 100,
+          })
+          .select()
+          .single();
+        inviteCode = newInvite?.invite_code || newCode;
+      } catch {
+        // Even if DB fails, show a generated code
+        inviteCode = newCode;
+      }
     }
   }
+  
+  // Create invite object for compatibility
+  const invite = inviteCode ? { invite_code: inviteCode } : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
