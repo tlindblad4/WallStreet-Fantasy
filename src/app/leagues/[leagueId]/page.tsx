@@ -62,26 +62,36 @@ export default async function LeaguePage({
   const isCommissioner = league.commissioner_id === session.user.id;
 
   // Get or create invite code
-  let { data: invite } = await supabase
-    .from("league_invites")
-    .select("invite_code")
-    .eq("league_id", leagueId)
-    .single();
+  let invite = null;
+  try {
+    const { data: existingInvite } = await supabase
+      .from("league_invites")
+      .select("invite_code")
+      .eq("league_id", leagueId)
+      .single();
+    invite = existingInvite;
+  } catch {
+    // No invite found, will create below
+  }
 
   // If no invite exists, create one
   if (!invite && isCommissioner) {
     const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const { data: newInvite } = await supabase
-      .from("league_invites")
-      .insert({
-        league_id: leagueId,
-        invited_by: session.user.id,
-        invite_code: newCode,
-        max_uses: 100,
-      })
-      .select()
-      .single();
-    invite = newInvite;
+    try {
+      const { data: newInvite } = await supabase
+        .from("league_invites")
+        .insert({
+          league_id: leagueId,
+          invited_by: session.user.id,
+          invite_code: newCode,
+          max_uses: 100,
+        })
+        .select()
+        .single();
+      invite = newInvite;
+    } catch (err) {
+      console.error("Failed to create invite:", err);
+    }
   }
 
   return (
