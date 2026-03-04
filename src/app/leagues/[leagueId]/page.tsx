@@ -229,6 +229,16 @@ export default async function LeaguePage({
               <p className="text-gray-400">Status</p>
               <p className="font-semibold capitalize">{league.status}</p>
             </div>
+            {isCommissioner && invite && (
+              <>
+                <div className="col-span-2 mt-2 pt-4 border-t border-white/10">
+                  <p className="text-gray-400">Invite Code</p>
+                  <p className="font-mono font-bold text-emerald-400 text-lg tracking-wider">
+                    {invite.invite_code}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>
