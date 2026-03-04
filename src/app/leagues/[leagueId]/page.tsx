@@ -59,14 +59,30 @@ export default async function LeaguePage({
   const calculatedReturn = calculatedTotalValue - startingBalance;
   const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
 
-  // Get invite code
-  const { data: invite } = await supabase
+  const isCommissioner = league.commissioner_id === session.user.id;
+
+  // Get or create invite code
+  let { data: invite } = await supabase
     .from("league_invites")
     .select("invite_code")
     .eq("league_id", leagueId)
     .single();
 
-  const isCommissioner = league.commissioner_id === session.user.id;
+  // If no invite exists, create one
+  if (!invite && isCommissioner) {
+    const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const { data: newInvite } = await supabase
+      .from("league_invites")
+      .insert({
+        league_id: leagueId,
+        invited_by: session.user.id,
+        invite_code: newCode,
+        max_uses: 100,
+      })
+      .select()
+      .single();
+    invite = newInvite;
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -165,9 +181,26 @@ export default async function LeaguePage({
           <HoldingsList holdings={holdings || []} />
         </div>
 
-        {/* Invite Friends Section */}
-        {invite && (
+        {/* Invite Friends Section - Always show for commissioners */}
+        {isCommissioner && invite && (
           <div className="mb-8">
+            <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                <span className="text-emerald-400">👥</span> Invite Friends
+              </h3>
+              <p className="text-zinc-400 text-sm mb-4">
+                Share this code with friends to invite them to your league
+              </p>
+              
+              {/* Big Invite Code Display */}
+              <div className="bg-zinc-950 rounded-xl p-6 mb-4 text-center border border-emerald-500/20">
+                <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Your Invite Code</p>
+                <code className="text-4xl font-mono font-bold text-emerald-400 tracking-[0.2em]">
+                  {invite.invite_code}
+                </code>
+              </div>
+            </div>
+            
             <InviteShare
               inviteCode={invite.invite_code}
               leagueName={league.name}
