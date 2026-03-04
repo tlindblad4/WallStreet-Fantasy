@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
 import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -81,11 +82,7 @@ export default async function DashboardPage() {
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-zinc-400 text-sm">{session.user.email}</span>
-              <form action="/api/auth/logout" method="post">
-                <Button type="submit" variant="outline" size="sm">
-                  Logout
-                </Button>
-              </form>
+              <LogoutButton />
             </div>
           </div>
         </div>
