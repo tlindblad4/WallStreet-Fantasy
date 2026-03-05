@@ -12,12 +12,14 @@ export default function JoinLeaguePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setDebugInfo("");
 
     try {
       const supabase = createClient();
@@ -31,25 +33,30 @@ export default function JoinLeaguePage() {
         return;
       }
 
+      const trimmedCode = inviteCode.trim().toUpperCase();
+      setDebugInfo(`Looking up code: ${trimmedCode}`);
+
       // Find invite - use maybeSingle to avoid errors
       const { data: invite, error: inviteError } = await supabase
         .from("league_invites")
         .select("league_id, uses_count, max_uses, invite_code")
-        .ilike("invite_code", inviteCode.trim())
+        .ilike("invite_code", trimmedCode)
         .maybeSingle();
 
       if (inviteError) {
         console.error("Invite lookup error:", inviteError);
-        setError("Error looking up invite code");
+        setError(`Error looking up invite code: ${inviteError.message}`);
         setLoading(false);
         return;
       }
 
       if (!invite) {
-        setError("Invalid invite code. Please check and try again.");
+        setError(`Invalid invite code: "${trimmedCode}". Please check and try again.`);
         setLoading(false);
         return;
       }
+
+      setDebugInfo(`Found invite: ${invite.invite_code} (uses: ${invite.uses_count}/${invite.max_uses})`);
 
       if (invite.uses_count >= invite.max_uses) {
         setError("This invite code has reached its maximum uses");
@@ -74,7 +81,7 @@ export default function JoinLeaguePage() {
       // Get league info
       const { data: league, error: leagueError } = await supabase
         .from("leagues")
-        .select("starting_balance")
+        .select("starting_balance, name")
         .eq("id", invite.league_id)
         .single();
 
@@ -84,6 +91,8 @@ export default function JoinLeaguePage() {
         setLoading(false);
         return;
       }
+
+      setDebugInfo(`Joining league: ${league.name}`);
 
       // Join league
       const { error: joinError } = await supabase
@@ -122,7 +131,7 @@ export default function JoinLeaguePage() {
       }, 2000);
     } catch (err: any) {
       console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      setError(`An unexpected error occurred: ${err.message}`);
     }
 
     setLoading(false);
@@ -171,6 +180,12 @@ export default function JoinLeaguePage() {
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
                 {error}
+              </div>
+            )}
+
+            {debugInfo && (
+              <div className="bg-blue-500/10 border border-blue-500/30 text-blue-400 px-4 py-2 rounded-xl mb-4 text-xs">
+                {debugInfo}
               </div>
             )}
 
