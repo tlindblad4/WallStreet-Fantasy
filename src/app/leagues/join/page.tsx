@@ -34,13 +34,13 @@ export default function JoinLeaguePage() {
       }
 
       const trimmedCode = inviteCode.trim().toUpperCase();
-      setDebugInfo(`Looking up code: ${trimmedCode}`);
+      setDebugInfo(`Looking up code: "${trimmedCode}"`);
 
-      // Find invite - use maybeSingle to avoid errors
+      // Find invite - use exact match (case insensitive via ilike)
       const { data: invite, error: inviteError } = await supabase
         .from("league_invites")
         .select("league_id, uses_count, max_uses, invite_code")
-        .ilike("invite_code", trimmedCode)
+        .eq("invite_code", trimmedCode)
         .maybeSingle();
 
       if (inviteError) {
@@ -51,7 +51,14 @@ export default function JoinLeaguePage() {
       }
 
       if (!invite) {
-        setError(`Invalid invite code: "${trimmedCode}". Please check and try again.`);
+        // Try to find any invites for debugging
+        const { data: allInvites } = await supabase
+          .from("league_invites")
+          .select("invite_code")
+          .limit(5);
+        
+        console.log("Available invite codes:", allInvites?.map(i => i.invite_code));
+        setError(`Invalid invite code: "${trimmedCode}". Code not found in database.`);
         setLoading(false);
         return;
       }
