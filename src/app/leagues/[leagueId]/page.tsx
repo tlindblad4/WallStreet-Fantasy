@@ -61,49 +61,18 @@ export default async function LeaguePage({
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
-  // Get or create invite code
-  let inviteCode = null;
+  // Get existing invite code (trigger should have created it)
+  let inviteCode: string | null = null;
   
-  // Only fetch/create invite for commissioners
   if (isCommissioner) {
-    try {
-      const { data: existingInvite } = await supabase
-        .from("league_invites")
-        .select("invite_code")
-        .eq("league_id", leagueId)
-        .maybeSingle();
-      
-      if (existingInvite) {
-        inviteCode = existingInvite.invite_code;
-      }
-    } catch {
-      // Ignore errors
-    }
-
-    // If no invite exists, create one
-    if (!inviteCode) {
-      const newCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-      try {
-        const { data: newInvite } = await supabase
-          .from("league_invites")
-          .insert({
-            league_id: leagueId,
-            invited_by: session.user.id,
-            invite_code: newCode,
-            max_uses: 100,
-          })
-          .select()
-          .single();
-        inviteCode = newInvite?.invite_code || newCode;
-      } catch {
-        // Even if DB fails, show a generated code
-        inviteCode = newCode;
-      }
-    }
+    const { data: existingInvite } = await supabase
+      .from("league_invites")
+      .select("invite_code")
+      .eq("league_id", leagueId)
+      .single();
+    
+    inviteCode = existingInvite?.invite_code || null;
   }
-  
-  // Create invite object for compatibility
-  const invite = inviteCode ? { invite_code: inviteCode } : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -203,10 +172,10 @@ export default async function LeaguePage({
         </div>
 
         {/* Invite Friends Section */}
-        {isCommissioner && invite && (
+        {isCommissioner && inviteCode && (
           <div className="mb-8">
             <InviteShare
-              inviteCode={invite.invite_code}
+              inviteCode={inviteCode}
               leagueName={league.name}
               leagueId={leagueId}
             />
@@ -233,12 +202,12 @@ export default async function LeaguePage({
               <p className="text-gray-400">Status</p>
               <p className="font-semibold capitalize">{league.status}</p>
             </div>
-            {isCommissioner && invite && (
+            {isCommissioner && inviteCode && (
               <>
                 <div className="col-span-2 mt-2 pt-4 border-t border-white/10">
                   <p className="text-gray-400">Invite Code</p>
                   <p className="font-mono font-bold text-emerald-400 text-lg tracking-wider">
-                    {invite.invite_code}
+                    {inviteCode}
                   </p>
                 </div>
               </>
