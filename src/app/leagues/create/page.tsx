@@ -72,7 +72,9 @@ export default function CreateLeaguePage() {
     }
 
     const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const { data: invite } = await supabase
+    console.log("Creating invite with code:", code, "for league:", league.id);
+    
+    const { data: invite, error: inviteError } = await supabase
       .from("league_invites")
       .insert({
         league_id: league.id,
@@ -83,8 +85,19 @@ export default function CreateLeaguePage() {
       .select()
       .single();
 
+    if (inviteError) {
+      console.error("Failed to create invite:", inviteError);
+      setError("League created but failed to generate invite code. Error: " + inviteError.message);
+      setLoading(false);
+      return;
+    }
+
     if (invite) {
+      console.log("Invite created successfully:", invite);
       setInviteCode(code);
+    } else {
+      console.error("Invite creation returned no data");
+      setError("League created but invite code generation failed");
     }
 
     setLoading(false);
