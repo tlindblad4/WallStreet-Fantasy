@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>WallStreet Fantasy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0a0a0a;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #app-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #27272a;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #a1a1aa;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="logo">WallStreet Fantasy</div>
+        <div class="spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+    
+    <iframe 
+        id="app-container"
+        src="https://wall-street-fantasy.vercel.app"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        allow="camera; microphone; geolocation"
+    ></iframe>
+
+    <script>
+        // Hide loading screen when iframe loads
+        const iframe = document.getElementById('app-container');
+        const loading = document.getElementById('loading');
+        
+        iframe.addEventListener('load', function() {
+            setTimeout(() => {
+                loading.classList.add('hidden');
+            }, 1000);
+        });
+        
+        // Handle errors
+        iframe.addEventListener('error', function() {
+            document.querySelector('.loading-text').textContent = 'Failed to load. Please check your connection.';
+        });
+        
+        // Bridge for Capacitor native features
+        window.addEventListener('message', function(event) {
+            // Handle messages from the web app
+            if (event.data && event.data.type) {
+                switch(event.data.type) {
+                    case 'PUSH_NOTIFICATION':
+                        // Native push notification
+                        if (window.Capacitor) {
+                            window.Capacitor.Plugins.PushNotifications.schedule(event.data.payload);
+                        }
+                        break;
+                    case 'BIOMETRIC_AUTH':
+                        // Face ID / Touch ID
+                        if (window.Capacitor) {
+                            window.Capacitor.Plugins.BiometricAuth.authenticate(event.data.payload);
+                        }
+                        break;
+                    case 'STORAGE':
+                        // Secure storage
+                        if (window.Capacitor) {
+                            const { key, value } = event.data.payload;
+                            if (value) {
+                                window.Capacitor.Plugins.Preferences.set({ key, value });
+                            } else {
+                                window.Capacitor.Plugins.Preferences.get({ key });
+                            }
+                        }
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
