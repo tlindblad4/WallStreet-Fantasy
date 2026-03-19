@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "Back to Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e6]
+        - text: Back to Dashboard
+    - main [ref=e8]:
+      - heading "Create New League" [level=1] [ref=e9]
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: League Name *
+          - textbox "My Fantasy League" [ref=e14]
+        - generic [ref=e15]:
+          - generic [ref=e16]: Description
+          - textbox "A friendly competition among friends..." [ref=e17]
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: Starting Balance
+            - combobox [ref=e21]:
+              - option "$50,000"
+              - option "$100,000" [selected]
+              - option "$250,000"
+              - option "$1,000,000"
+          - generic [ref=e22]:
+            - generic [ref=e23]: Season Length (days)
+            - combobox [ref=e24]:
+              - option "30 days"
+              - option "60 days"
+              - option "90 days" [selected]
+              - option "180 days"
+          - generic [ref=e25]:
+            - generic [ref=e26]: Max Players
+            - combobox [ref=e27]:
+              - option "5"
+              - option "10"
+              - option "20" [selected]
+              - option "50"
+        - generic [ref=e29] [cursor=pointer]:
+          - checkbox "Enable Options Trading Allow members to trade call and put options for advanced strategies" [ref=e30]
+          - generic [ref=e31]:
+            - paragraph [ref=e32]: Enable Options Trading
+            - paragraph [ref=e33]: Allow members to trade call and put options for advanced strategies
+        - button "Create League" [ref=e34] [cursor=pointer]
+  - alert [ref=e35]
+```

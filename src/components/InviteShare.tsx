@@ -105,7 +105,7 @@ export default function InviteShare({ inviteCode, leagueName, leagueId }: Invite
   };
 
   return (
-    <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-6">
+    <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-4 md:p-6">
       <div className="flex items-center gap-2 mb-4">
         <Share2 className="w-5 h-5 text-green-400" />
         <h3 className="text-lg font-semibold">Invite Friends</h3>
