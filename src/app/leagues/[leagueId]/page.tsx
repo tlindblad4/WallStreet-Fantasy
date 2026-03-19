@@ -8,6 +8,7 @@ import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import PortfolioChart from "@/components/PortfolioChart";
 import HoldingsList from "@/components/HoldingsList";
 import PortfolioRefresh from "@/components/PortfolioRefresh";
+import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
 
 export default async function LeaguePage({ 
   params 
@@ -142,7 +143,15 @@ export default async function LeaguePage({
           </Link>
         </div>
 
-        {/* Portfolio Chart */}
+        {/* Portfolio Performance Chart */}
+        <div className="bg-white/5 rounded-2xl p-6 mb-8">
+          <PortfolioPerformanceChart
+            leagueMemberId={member?.id || ""}
+            startingBalance={startingBalance}
+          />
+        </div>
+
+        {/* Portfolio Stats */}
         <div className="mb-8">
           <PortfolioChart
             metrics={{
