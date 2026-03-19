@@ -2,9 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon } from "lucide-react";
+import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
+import StockSearch from "@/components/StockSearch";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -105,6 +106,16 @@ export default async function DashboardPage() {
             title="Avg. Return"
             value={`${avgReturn.toFixed(1)}%`}
             icon={<Users className="w-6 h-6 text-blue-400" />}
+          />
+        </div>
+
+        {/* Stock Search */}
+        <div className="mb-8">
+          <StockSearch
+            onSelect={(symbol) => {
+              window.location.href = `/asset/${symbol}`;
+            }}
+            placeholder="Search stocks (e.g., AAPL, TSLA, BTC)..."
           />
         </div>
 
