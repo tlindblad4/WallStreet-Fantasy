@@ -13,7 +13,9 @@ import {
   Globe, 
   Users,
   BarChart3,
-  Activity
+  Activity,
+  ShoppingCart,
+  X
 } from "lucide-react";
 import { 
   LineChart, 
@@ -82,12 +84,22 @@ function generateHistoricalData(currentPrice: number, days: number): ChartData[]
 export default function AssetDetailPage() {
   const params = useParams();
   const symbol = params.symbol as string;
-  
+
   const [asset, setAsset] = useState<AssetData | null>(null);
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [timeRange, setTimeRange] = useState<"1W" | "1M" | "3M" | "1Y">("1M");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Trade modal state
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [tradeType, setTradeType] = useState<"buy" | "sell">("buy");
+  const [tradeQuantity, setTradeQuantity] = useState("");
+  const [userLeagues, setUserLeagues] = useState<Array<{ id: string; name: string; cash_balance: number }>>([]);
+  const [selectedLeague, setSelectedLeague] = useState("");
+  const [tradeLoading, setTradeLoading] = useState(false);
+  const [tradeError, setTradeError] = useState("");
+  const [tradeSuccess, setTradeSuccess] = useState("");
 
   useEffect(() => {
     const fetchAssetData = async () => {
@@ -195,7 +207,12 @@ export default function AssetDetailPage() {
               <span>Back</span>
             </Link>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowTradeModal(true)}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
                 Trade
               </Button>
             </div>
@@ -396,6 +413,86 @@ export default function AssetDetailPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Trade Modal */}
+        {showTradeModal && asset && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold">Trade {asset.symbol}</h2>
+                <button
+                  onClick={() => setShowTradeModal(false)}
+                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-zinc-400 text-sm mb-1">Current Price</p>
+                <p className="text-3xl font-bold">${asset.price.toFixed(2)}</p>
+              </div>
+
+              {/* Buy/Sell Toggle */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => setTradeType("buy")}
+                  className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
+                    tradeType === "buy"
+                      ? "bg-emerald-500 text-black"
+                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  }`}
+                >
+                  Buy
+                </button>
+                <button
+                  onClick={() => setTradeType("sell")}
+                  className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
+                    tradeType === "sell"
+                      ? "bg-red-500 text-white"
+                      : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                  }`}
+                >
+                  Sell
+                </button>
+              </div>
+
+              {/* Quantity Input */}
+              <div className="mb-6">
+                <label className="block text-sm text-zinc-400 mb-2">Quantity</label>
+                <input
+                  type="number"
+                  value={tradeQuantity}
+                  onChange={(e) => setTradeQuantity(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white text-lg"
+                  placeholder="0"
+                  min="1"
+                />
+                {tradeQuantity && (
+                  <p className="text-sm text-zinc-500 mt-2">
+                    Total: ${(parseInt(tradeQuantity) * asset.price).toFixed(2)}
+                  </p>
+                )}
+              </div>
+
+              {/* Coming Soon Notice */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 mb-6">
+                <p className="text-yellow-400 text-sm text-center">
+                  ⚠️ Trading from asset page coming soon!
+                  <br />
+                  Use the Trade button in your league for now.
+                </p>
+              </div>
+
+              <Button
+                className="w-full"
+                disabled={true}
+              >
+                Coming Soon
+              </Button>
             </div>
           </div>
         )}
