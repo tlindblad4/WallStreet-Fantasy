@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
+import NotificationBell from "@/components/NotificationBell";
+import AchievementsPanel from "@/components/AchievementsPanel";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -81,6 +83,7 @@ export default async function DashboardPage() {
               <span className="text-xl font-bold text-white tracking-tight">WallStreet Fantasy</span>
             </Link>
             <div className="flex items-center gap-4">
+              <NotificationBell />
               <span className="text-zinc-400 text-sm">{session.user.email}</span>
               <LogoutButton />
             </div>
@@ -124,6 +127,11 @@ export default async function DashboardPage() {
               Join League
             </Button>
           </Link>
+        </div>
+
+        {/* Achievements */}
+        <div className="mb-8">
+          <AchievementsPanel />
         </div>
 
         {/* Leagues */}
