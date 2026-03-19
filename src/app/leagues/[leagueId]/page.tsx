@@ -63,23 +63,20 @@ export default async function LeaguePage({
 
   // Get existing invite code (trigger should have created it)
   let inviteCode: string | null = null;
+  let inviteErrorMsg: string | null = null;
   
   if (isCommissioner) {
-    try {
-      const { data: existingInvite, error: inviteError } = await supabase
-        .from("league_invites")
-        .select("invite_code")
-        .eq("league_id", leagueId)
-        .maybeSingle();
-      
-      if (inviteError) {
-        console.error("Error fetching invite:", inviteError);
-      }
-      
+    const { data: existingInvite, error: inviteError } = await supabase
+      .from("league_invites")
+      .select("invite_code")
+      .eq("league_id", leagueId)
+      .single();
+    
+    if (inviteError) {
+      console.error("Error fetching invite:", inviteError);
+      inviteErrorMsg = inviteError.message;
+    } else {
       inviteCode = existingInvite?.invite_code || null;
-      console.log("Invite code for league", leagueId, ":", inviteCode);
-    } catch (err) {
-      console.error("Failed to fetch invite code:", err);
     }
   }
 
