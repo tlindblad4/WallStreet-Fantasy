@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
-import StockSearchWrapper from "@/components/StockSearchWrapper";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
