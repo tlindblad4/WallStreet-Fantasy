@@ -172,19 +172,10 @@ export default async function LeaguePage({
           />
         </div>
 
-        {/* Invite Friends Section - Debug */}
-        {isCommissioner && (
-          <div className="mb-8 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-4 text-white">Invite Friends</h3>
-            {inviteCode ? (
-              <div>
-                <p className="text-zinc-400 text-sm mb-2">Your Invite Code:</p>
-                <code className="text-3xl font-mono font-bold text-emerald-400 tracking-wider">{inviteCode}</code>
-                <InviteShare inviteCode={inviteCode} leagueName={league.name} leagueId={leagueId} />
-              </div>
-            ) : (
-              <p className="text-yellow-400">Invite code not found. Debug: isCommissioner={isCommissioner ? 'true' : 'false'}</p>
-            )}
+        {/* Invite Friends Section */}
+        {isCommissioner && inviteCode && (
+          <div className="mb-8">
+            <InviteShare inviteCode={inviteCode} leagueName={league.name} leagueId={leagueId} />
           </div>
         )}
 
