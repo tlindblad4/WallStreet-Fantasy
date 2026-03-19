@@ -61,27 +61,9 @@ export default async function LeaguePage({
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
-  // Get existing invite code (trigger should have created it)
-  let inviteCode: string | null = null;
-  let inviteErrorMsg: string | null = null;
-  
-  if (isCommissioner) {
-    // Use maybeSingle to avoid errors when no rows exist
-    const { data: existingInvite, error: inviteError } = await supabase
-      .from("league_invites")
-      .select("invite_code")
-      .eq("league_id", leagueId)
-      .maybeSingle();
-    
-    if (inviteError) {
-      console.error("Error fetching invite:", inviteError);
-      inviteErrorMsg = inviteError.message;
-    } else if (existingInvite) {
-      inviteCode = existingInvite.invite_code;
-    } else {
-      inviteErrorMsg = "No invite found in database";
-    }
-  }
+  // HARD CODE THE INVITE CODE FOR TESTING
+  // This proves the issue is with the database fetch, not the display
+  const inviteCode = isCommissioner ? "A58B3FB6" : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
