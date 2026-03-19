@@ -65,13 +65,22 @@ export default async function LeaguePage({
   let inviteCode: string | null = null;
   
   if (isCommissioner) {
-    const { data: existingInvite } = await supabase
-      .from("league_invites")
-      .select("invite_code")
-      .eq("league_id", leagueId)
-      .single();
-    
-    inviteCode = existingInvite?.invite_code || null;
+    try {
+      const { data: existingInvite, error: inviteError } = await supabase
+        .from("league_invites")
+        .select("invite_code")
+        .eq("league_id", leagueId)
+        .maybeSingle();
+      
+      if (inviteError) {
+        console.error("Error fetching invite:", inviteError);
+      }
+      
+      inviteCode = existingInvite?.invite_code || null;
+      console.log("Invite code for league", leagueId, ":", inviteCode);
+    } catch (err) {
+      console.error("Failed to fetch invite code:", err);
+    }
   }
 
   return (
