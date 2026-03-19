@@ -66,17 +66,20 @@ export default async function LeaguePage({
   let inviteErrorMsg: string | null = null;
   
   if (isCommissioner) {
+    // Use maybeSingle to avoid errors when no rows exist
     const { data: existingInvite, error: inviteError } = await supabase
       .from("league_invites")
       .select("invite_code")
       .eq("league_id", leagueId)
-      .single();
+      .maybeSingle();
     
     if (inviteError) {
       console.error("Error fetching invite:", inviteError);
       inviteErrorMsg = inviteError.message;
+    } else if (existingInvite) {
+      inviteCode = existingInvite.invite_code;
     } else {
-      inviteCode = existingInvite?.invite_code || null;
+      inviteErrorMsg = "No invite found in database";
     }
   }
 
