@@ -134,7 +134,8 @@ export default function JoinLeaguePage() {
         .single();
 
       if (leagueError || !league) {
-        setError("Error finding league");
+        console.error("League lookup error:", leagueError);
+        setError(`Error finding league: ${leagueError?.message || "League not found"}`);
         setLoading(false);
         return;
       }
