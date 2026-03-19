@@ -21,18 +21,24 @@ export default function JoinLeaguePage() {
   useEffect(() => {
     const loadCodes = async () => {
       const supabase = createClient();
+      
+      // First check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log("LoadCodes - User authenticated:", !!user);
+      
       const { data, error } = await supabase
         .from("league_invites")
         .select("invite_code")
         .order("created_at", { ascending: false })
         .limit(10);
       
-      console.log("Loaded invite codes:", data, "Error:", error);
+      console.log("Loaded invite codes:", data?.length || 0, "codes", "Error:", error?.message);
       
       if (data) {
         setAvailableCodes(data.map(i => i.invite_code));
       } else if (error) {
         console.error("Error loading invite codes:", error);
+        setError("Error loading invite codes: " + error.message);
       }
     };
     loadCodes();
@@ -47,11 +53,13 @@ export default function JoinLeaguePage() {
     try {
       const supabase = createClient();
 
-      // Check user auth
-      const { data: { user } } = await supabase.auth.getUser();
+      // Check user auth - use getUser() for security
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      console.log("Auth check - User:", user?.id, "Error:", userError);
       
       if (!user) {
-        setError("You must be logged in");
+        setError("You must be logged in. Please refresh and try again.");
         setLoading(false);
         return;
       }

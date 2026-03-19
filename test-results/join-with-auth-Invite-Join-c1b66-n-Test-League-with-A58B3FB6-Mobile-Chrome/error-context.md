@@ -19,7 +19,7 @@
           - generic [ref=e20]: Email
           - generic [ref=e21]:
             - img [ref=e22]
-            - textbox "you@example.com" [ref=e25]: test@example.com
+            - textbox "you@example.com" [ref=e25]: testjoiner@example.com
         - generic [ref=e26]:
           - generic [ref=e27]: Password
           - generic [ref=e28]:
