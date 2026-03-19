@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
-import StockSearch from "@/components/StockSearch";
+import StockSearchWrapper from "@/components/StockSearchWrapper";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -109,15 +109,8 @@ export default async function DashboardPage() {
           />
         </div>
 
-        {/* Stock Search */}
-        <div className="mb-8">
-          <StockSearch
-            onSelect={(symbol) => {
-              window.location.href = `/asset/${symbol}`;
-            }}
-            placeholder="Search stocks (e.g., AAPL, TSLA, BTC)..."
-          />
-        </div>
+        {/* Stock Search - Client Component Wrapper */}
+        <StockSearchWrapper />
 
         {/* Actions */}
         <div className="flex gap-4 mb-8">
