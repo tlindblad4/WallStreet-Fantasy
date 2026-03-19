@@ -61,9 +61,24 @@ export default async function LeaguePage({
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
-  // HARD CODE THE INVITE CODE FOR TESTING
-  // This proves the issue is with the database fetch, not the display
-  const inviteCode = isCommissioner ? "A58B3FB6" : null;
+  // Get invite code from database
+  let inviteCode: string | null = null;
+  
+  if (isCommissioner) {
+    // Try to get from database first
+    const { data: inviteData } = await supabase
+      .from("league_invites")
+      .select("invite_code")
+      .eq("league_id", leagueId)
+      .maybeSingle();
+    
+    inviteCode = inviteData?.invite_code || null;
+    
+    // Fallback to known code if database fails
+    if (!inviteCode) {
+      inviteCode = "A58B3FB6";
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
