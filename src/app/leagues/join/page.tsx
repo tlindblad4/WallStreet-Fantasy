@@ -21,14 +21,18 @@ export default function JoinLeaguePage() {
   useEffect(() => {
     const loadCodes = async () => {
       const supabase = createClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("league_invites")
         .select("invite_code")
         .order("created_at", { ascending: false })
         .limit(10);
       
+      console.log("Loaded invite codes:", data, "Error:", error);
+      
       if (data) {
         setAvailableCodes(data.map(i => i.invite_code));
+      } else if (error) {
+        console.error("Error loading invite codes:", error);
       }
     };
     loadCodes();
@@ -55,12 +59,29 @@ export default function JoinLeaguePage() {
       const trimmedCode = inviteCode.trim().toUpperCase();
       setDebugInfo(`Looking up code: "${trimmedCode}"`);
 
-      // Find invite
-      const { data: invite, error: inviteError } = await supabase
+      // Find invite - try exact match first
+      console.log("Looking up invite code:", trimmedCode);
+      
+      let { data: invite, error: inviteError } = await supabase
         .from("league_invites")
         .select("league_id, uses_count, max_uses, invite_code")
         .eq("invite_code", trimmedCode)
         .maybeSingle();
+
+      // If not found, try case-insensitive match
+      if (!invite && !inviteError) {
+        console.log("Exact match not found, trying case-insensitive...");
+        const { data: allInvites } = await supabase
+          .from("league_invites")
+          .select("league_id, uses_count, max_uses, invite_code");
+        
+        console.log("All invites in DB:", allInvites);
+        
+        // Manual case-insensitive match
+        invite = allInvites?.find(i => 
+          i.invite_code.toUpperCase() === trimmedCode
+        ) || null;
+      }
 
       if (inviteError) {
         console.error("Invite lookup error:", inviteError);
