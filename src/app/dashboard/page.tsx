@@ -109,8 +109,7 @@ export default async function DashboardPage() {
           />
         </div>
 
-        {/* Stock Search - Client Component Wrapper */}
-        <StockSearchWrapper />
+
 
         {/* Actions */}
         <div className="flex gap-4 mb-8">
