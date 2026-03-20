@@ -70,33 +70,29 @@ export default function CreateLeaguePage() {
       return;
     }
 
-    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-    console.log("Creating invite with code:", code, "for league:", league.id);
+    // Wait a moment for the database trigger to create the invite
+    await new Promise(resolve => setTimeout(resolve, 500));
     
+    // Fetch the auto-generated invite code
     const { data: invite, error: inviteError } = await supabase
       .from("league_invites")
-      .insert({
-        league_id: league.id,
-        invited_by: user.id,
-        invite_code: code,
-        max_uses: 100,
-      })
-      .select()
-      .single();
+      .select("invite_code")
+      .eq("league_id", league.id)
+      .maybeSingle();
 
     if (inviteError) {
-      console.error("Failed to create invite:", inviteError);
-      setError("League created but failed to generate invite code. Error: " + inviteError.message);
+      console.error("Failed to fetch invite:", inviteError);
+      setError("League created but failed to fetch invite code. Error: " + inviteError.message);
       setLoading(false);
       return;
     }
 
     if (invite) {
-      console.log("Invite created successfully:", invite);
-      setInviteCode(code);
+      console.log("Invite fetched successfully:", invite);
+      setInviteCode(invite.invite_code);
     } else {
-      console.error("Invite creation returned no data");
-      setError("League created but invite code generation failed");
+      console.error("No invite found");
+      setError("League created but invite code not found. Please check the league page.");
     }
 
     setLoading(false);
