@@ -85,8 +85,6 @@ export default function CompetitivePerformanceChart({
         Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
         seasonLengthDays
       ));
-      
-      console.log('Start date:', startDate, 'Days running:', daysRunning);
 
       // Generate data points for each day
       const dataPoints: ChartDataPoint[] = [];
@@ -148,7 +146,6 @@ export default function CompetitivePerformanceChart({
         dataPoints.push(dataPoint);
       }
 
-      console.log('Chart data points:', dataPoints.length, dataPoints);
       setChartData(dataPoints);
       setLoading(false);
     };

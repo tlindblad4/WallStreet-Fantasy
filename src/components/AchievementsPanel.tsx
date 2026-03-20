@@ -75,15 +75,11 @@ export default function AchievementsPanel() {
         return;
       }
 
-      console.log('Fetching achievements for user:', user.id);
-
       // Get user's unlocked achievements
-      const { data: userAchievements, error: achievementsError } = await supabase
+      const { data: userAchievements } = await supabase
         .from("user_achievements")
         .select("*")
         .eq("user_id", user.id);
-      
-      console.log('User achievements:', userAchievements, 'Error:', achievementsError);
 
       // Get user's stats
       const { data: trades, error: tradesError } = await supabase
@@ -96,16 +92,11 @@ export default function AchievementsPanel() {
         .select("current_rank, total_return")
         .eq("user_id", user.id);
 
-      console.log('Trades:', trades?.length, 'Error:', tradesError);
-      console.log('Memberships:', memberships?.length, 'Error:', membershipsError);
-
       // Calculate progress
       const tradeCount = trades?.length || 0;
       const totalProfit = memberships?.reduce((sum, m) => sum + (m.total_return || 0), 0) || 0;
       const leagueCount = memberships?.length || 0;
       const hasRank1 = memberships?.some(m => m.current_rank === 1) || false;
-
-      console.log('Stats:', { tradeCount, totalProfit, leagueCount, hasRank1 });
 
       const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
 

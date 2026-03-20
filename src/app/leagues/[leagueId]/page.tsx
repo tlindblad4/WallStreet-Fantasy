@@ -79,13 +79,7 @@ export default async function LeaguePage({
   const cashBalance = member?.cash_balance || 0;
   const calculatedTotalValue = cashBalance + holdingsValue;
   
-  console.log('Portfolio calculation:', {
-    cashBalance,
-    holdingsValue,
-    calculatedTotalValue,
-    holdingsCount: holdings?.length || 0,
-    holdings: holdings?.map(h => ({ symbol: h.symbol, shares: h.shares, current_value: h.current_value }))
-  });
+
   const startingBalance = league?.starting_balance || 100000;
   const calculatedReturn = calculatedTotalValue - startingBalance;
   const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
