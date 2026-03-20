@@ -2,12 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { Button } from "@/components/ui/button";
-import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search } from "lucide-react";
+import { Trophy, Users, TrendingUp, Plus, TrendingUpIcon, Search, Wallet, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationBell from "@/components/NotificationBell";
 import AchievementsPanel from "@/components/AchievementsPanel";
 import MarketOverview from "@/components/MarketOverview";
+import { GlassCard, GradientText, PremiumStatCard } from "@/components/ui/PremiumCards";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations/FadeIn";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -93,24 +95,49 @@ export default async function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <FadeIn>
+          <h1 className="text-4xl font-bold mb-2">
+            <GradientText>Dashboard</GradientText>
+          </h1>
+          <p className="text-zinc-400 mb-8">Track your portfolios and market performance</p>
+        </FadeIn>
+
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard
-            title="Active Leagues"
-            value={leaguesWithCalculatedValues.length.toString()}
-            icon={<Trophy className="w-6 h-6 text-yellow-400" />}
-          />
-          <StatCard
-            title="Total Portfolio Value"
-            value={`$${totalPortfolioValue.toLocaleString()}`}
-            icon={<TrendingUp className="w-6 h-6 text-emerald-400" />}
-          />
-          <StatCard
-            title="Avg. Return"
-            value={`${avgReturn.toFixed(1)}%`}
-            icon={<Users className="w-6 h-6 text-blue-400" />}
-          />
-        </div>
+        <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StaggerItem>
+            <PremiumStatCard
+              label="Active Leagues"
+              value={leaguesWithCalculatedValues.length.toString()}
+              icon={<Trophy className="w-6 h-6 text-yellow-400" />}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <PremiumStatCard
+              label="Total Portfolio Value"
+              value={`$${totalPortfolioValue.toLocaleString()}`}
+              change={avgReturn >= 0 ? `+${avgReturn.toFixed(1)}%` : `${avgReturn.toFixed(1)}%`}
+              changeType={avgReturn >= 0 ? "positive" : "negative"}
+              icon={<Wallet className="w-6 h-6 text-emerald-400" />}
+            />
+          </StaggerItem>
+          <StaggerItem>
+            <PremiumStatCard
+              label="Best Performer"
+              value={leaguesWithCalculatedValues.length > 0 
+                ? leaguesWithCalculatedValues.reduce((best, l) => 
+                    l.calculatedReturnPercent > best.calculatedReturnPercent ? l : best
+                  ).league?.name?.substring(0, 15) + "..." || "-"
+                : "-"}
+              change={leaguesWithCalculatedValues.length > 0
+                ? `+${leaguesWithCalculatedValues.reduce((best, l) => 
+                    l.calculatedReturnPercent > best.calculatedReturnPercent ? l : best
+                  ).calculatedReturnPercent.toFixed(1)}%`
+                : undefined}
+              changeType="positive"
+              icon={<ArrowUpRight className="w-6 h-6 text-emerald-400" />}
+            />
+          </StaggerItem>
+        </StaggerContainer>
 
 
 
