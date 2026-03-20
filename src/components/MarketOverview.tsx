@@ -82,13 +82,14 @@ export default function MarketOverview() {
       console.log('Losers:', negativeLosers.map(s => `${s.symbol}: ${s.changePercent}%`));
       setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
 
-      // Fetch indices (using Finnhub as Alpha Vantage doesn't have real-time indices on free tier)
+      // Fetch indices - use SPY, DIA, QQQ as proxies for S&P 500, Dow, Nasdaq
+      // These ETFs track the indices and are available on free API tiers
       const indicesData = await Promise.all([
-        fetchIndex('^GSPC', 'S&P 500'),
-        fetchIndex('^DJI', 'Dow Jones'),
-        fetchIndex('^IXIC', 'Nasdaq'),
-        fetchIndex('BINANCE:BTCUSDT', 'Bitcoin'),
-        fetchIndex('BINANCE:ETHUSDT', 'Ethereum'),
+        fetchIndex('SPY', 'S&P 500 (SPY)'),
+        fetchIndex('DIA', 'Dow Jones (DIA)'),
+        fetchIndex('QQQ', 'Nasdaq (QQQ)'),
+        fetchIndex('BTC-USD', 'Bitcoin'),
+        fetchIndex('ETH-USD', 'Ethereum'),
       ]);
       
       setIndices(indicesData.filter(Boolean) as MarketIndex[]);
@@ -164,6 +165,24 @@ export default function MarketOverview() {
 
   const fetchIndex = async (symbol: string, name: string): Promise<MarketIndex | null> => {
     try {
+      // Try Alpha Vantage first for indices
+      const avResponse = await fetch(
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
+      );
+      const avData = await avResponse.json();
+      
+      const avQuote = avData['Global Quote'];
+      if (avQuote && avQuote['05. price']) {
+        return {
+          symbol,
+          name,
+          price: parseFloat(avQuote['05. price']),
+          change: parseFloat(avQuote['09. change'] || 0),
+          changePercent: parseFloat(avQuote['10. change percent']?.replace('%', '') || 0),
+        };
+      }
+      
+      // Fallback to Finnhub
       const timestamp = Date.now();
       const response = await fetch(
         `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`
