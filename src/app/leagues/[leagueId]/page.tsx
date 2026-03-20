@@ -102,6 +102,16 @@ export default async function LeaguePage({
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+        {/* Days Left Countdown - At the top */}
+        {league.season_end_date && (
+          <div className="mb-6">
+            <DaysLeftTracker 
+              seasonEndDate={league.season_end_date} 
+              seasonLengthDays={league.season_length_days || 90}
+            />
+          </div>
+        )}
+
         {/* Auto-refresh prices */}
         {member && (
           <PortfolioRefresh leagueMemberId={member.id} />
@@ -131,16 +141,6 @@ export default async function LeaguePage({
             <p className="text-xl font-bold text-yellow-400">#{member?.current_rank || "-"}</p>
           </div>
         </div>
-
-        {/* Days Left Tracker */}
-        {league.season_end_date && (
-          <div className="mb-6">
-            <DaysLeftTracker 
-              seasonEndDate={league.season_end_date} 
-              seasonLengthDays={league.season_length_days || 90}
-            />
-          </div>
-        )}
 
         {/* Actions */}
         <div className="flex gap-4 mb-8">
