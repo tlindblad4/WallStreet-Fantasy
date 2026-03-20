@@ -3,14 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { TrendingUp, TrendingDown, Users } from "lucide-react";
-
-interface MemberPerformance {
-  userId: string;
-  username: string;
-  color: string;
-  isCurrentUser: boolean;
-}
+import { Users } from "lucide-react";
 
 interface ChartDataPoint {
   date: string;
@@ -25,16 +18,7 @@ interface CompetitivePerformanceChartProps {
   seasonLengthDays?: number;
 }
 
-const COLORS = [
-  "#10b981", // emerald
-  "#3b82f6", // blue
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#06b6d4", // cyan
-  "#84cc16", // lime
-];
+const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
 
 export default function CompetitivePerformanceChart({
   leagueId,
@@ -43,24 +27,20 @@ export default function CompetitivePerformanceChart({
   seasonStartDate,
   seasonLengthDays = 90
 }: CompetitivePerformanceChartProps) {
-  const [members, setMembers] = useState<MemberPerformance[]>([]);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [members, setMembers] = useState<Array<{userId: string; username: string; color: string; isCurrentUser: boolean}>>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"1W" | "1M" | "ALL">("ALL");
 
   useEffect(() => {
-    const fetchCompetitiveData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       const supabase = createClient();
 
-      // Get all league members
+      // Get league members
       const { data: leagueMembers } = await supabase
         .from("league_members")
-        .select(`
-          id,
-          user_id,
-          profiles:user_id(username)
-        `)
+        .select(`id, user_id, profiles:user_id(username)`)
         .eq("league_id", leagueId)
         .eq("status", "active");
 
@@ -69,8 +49,9 @@ export default function CompetitivePerformanceChart({
         return;
       }
 
-      // Assign colors and identify current user
-      const memberData: MemberPerformance[] = leagueMembers.map((m: any, index) => ({
+      // Setup member data
+      const memberData = leagueMembers.map((m: any, index: number) => ({
+        id: m.id,
         userId: m.user_id,
         username: m.profiles?.username || `Player ${index + 1}`,
         color: COLORS[index % COLORS.length],
@@ -79,158 +60,92 @@ export default function CompetitivePerformanceChart({
 
       setMembers(memberData);
 
-      // Get all trades for all members
+      // Get all trades for these members
       const memberIds = leagueMembers.map((m: any) => m.id);
-      const { data: allTrades } = await supabase
+      const { data: trades } = await supabase
         .from("trades")
         .select("league_member_id, created_at, type, quantity, price, symbol")
         .in("league_member_id", memberIds)
         .order("created_at", { ascending: true });
 
-      // Build chart data
-      const dataPoints: ChartDataPoint[] = [];
-
-      // Create a map of member_id to user data
-      const memberMap = new Map(
-        leagueMembers.map((m: any) => [m.id, memberData.find(md => md.userId === m.user_id)])
-      );
-
       // Determine league start date
-      const leagueStartDate = seasonStartDate ? new Date(seasonStartDate) : new Date();
+      const startDate = seasonStartDate ? new Date(seasonStartDate) : new Date();
       const today = new Date();
-      const daysRunning = Math.max(1, Math.ceil((today.getTime() - leagueStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+      const daysRunning = Math.max(1, Math.min(
+        Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
+        seasonLengthDays
+      ));
 
-      // Generate timeline based on league settings
-      const generateTimeline = () => {
-        const timeline: string[] = [];
-        const totalDays = Math.min(daysRunning, seasonLengthDays);
-
-        // Always show start
-        timeline.push("Day 1");
-
-        // Add intermediate points based on how long league has been running
-        if (totalDays > 1) {
-          if (totalDays <= 7) {
-            // Daily for first week
-            for (let i = 2; i <= totalDays; i++) {
-              timeline.push(`Day ${i}`);
-            }
-          } else if (totalDays <= 30) {
-            // Every few days for first month
-            for (let i = 2; i <= totalDays; i += 2) {
-              timeline.push(`Day ${i}`);
-            }
-          } else {
-            // Weekly after first month
-            for (let i = 7; i <= totalDays; i += 7) {
-              timeline.push(`Day ${i}`);
-            }
-          }
-        }
-
-        return timeline;
-      };
-
-      const timeline = generateTimeline();
-
-      // Add starting point
-      const startingPoint: ChartDataPoint = { date: "Day 1" };
+      // Generate data points for each day
+      const dataPoints: ChartDataPoint[] = [];
+      
+      // Track each member's portfolio
+      const portfolios: Record<string, { cash: number; holdings: Record<string, number> }> = {};
       memberData.forEach(m => {
-        startingPoint[m.username] = startingBalance;
+        portfolios[m.id] = { cash: startingBalance, holdings: {} };
       });
-      dataPoints.push(startingPoint);
 
-      // Calculate portfolio value for each member at each trade point
-      if (allTrades && allTrades.length > 0) {
-        const memberHoldings: Record<string, Record<string, { quantity: number; avgPrice: number }>> = {};
-        const memberCash: Record<string, number> = {};
+      // Group trades by day
+      const tradesByDay: Record<number, any[]> = {};
+      trades?.forEach((trade: any) => {
+        const tradeDate = new Date(trade.created_at);
+        const dayNum = Math.ceil((tradeDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (!tradesByDay[dayNum]) tradesByDay[dayNum] = [];
+        tradesByDay[dayNum].push(trade);
+      });
 
-        // Initialize
-        memberIds.forEach((id: string) => {
-          memberHoldings[id] = {};
-          memberCash[id] = startingBalance;
-        });
-
-        // Group trades by day number (relative to league start)
-        const tradesByDay = new Map<number, any[]>();
-        allTrades.forEach((trade: any) => {
-          const tradeDate = new Date(trade.created_at);
-          const dayNumber = Math.ceil((tradeDate.getTime() - leagueStartDate.getTime()) / (1000 * 60 * 60 * 24));
-          if (!tradesByDay.has(dayNumber)) {
-            tradesByDay.set(dayNumber, []);
+      // Generate data for each day
+      for (let day = 1; day <= daysRunning; day++) {
+        // Process trades for this day
+        const dayTrades = tradesByDay[day] || [];
+        dayTrades.forEach((trade: any) => {
+          const portfolio = portfolios[trade.league_member_id];
+          const tradeValue = trade.quantity * trade.price;
+          
+          if (trade.type === "buy") {
+            portfolio.cash -= tradeValue;
+            portfolio.holdings[trade.symbol] = (portfolio.holdings[trade.symbol] || 0) + trade.quantity;
+          } else {
+            portfolio.cash += tradeValue;
+            portfolio.holdings[trade.symbol] = (portfolio.holdings[trade.symbol] || 0) - trade.quantity;
           }
-          tradesByDay.get(dayNumber)?.push(trade);
         });
 
-        // Process each day in timeline
-        timeline.slice(1).forEach(dayLabel => {
-          const dayNumber = parseInt(dayLabel.replace('Day ', ''));
-          const dayTrades = tradesByDay.get(dayNumber) || [];
-
-          dayTrades.forEach((trade: any) => {
-            const tradeValue = trade.quantity * trade.price;
-
-            if (trade.type === "buy") {
-              memberCash[trade.league_member_id] -= tradeValue;
-              if (!memberHoldings[trade.league_member_id][trade.symbol]) {
-                memberHoldings[trade.league_member_id][trade.symbol] = { quantity: 0, avgPrice: 0 };
-              }
-              memberHoldings[trade.league_member_id][trade.symbol].quantity += trade.quantity;
-            } else {
-              memberCash[trade.league_member_id] += tradeValue;
-              if (memberHoldings[trade.league_member_id][trade.symbol]) {
-                memberHoldings[trade.league_member_id][trade.symbol].quantity -= trade.quantity;
-              }
-            }
-          });
-
-          // Calculate total value for each member
-          const dataPoint: ChartDataPoint = { date: dayLabel };
+        // Calculate portfolio value for each member
+        const dataPoint: ChartDataPoint = { date: `Day ${day}` };
+        
+        memberData.forEach(member => {
+          const portfolio = portfolios[member.id];
+          let holdingsValue = 0;
           
-          memberIds.forEach((memberId: string) => {
-            const member = memberMap.get(memberId);
-            if (member) {
-              let holdingsValue = 0;
-              Object.entries(memberHoldings[memberId]).forEach(([symbol, position]: [string, any]) => {
-                if (position.quantity > 0) {
-                  // Find latest price from trades
-                  const latestTrade = allTrades
-                    .filter((t: any) => t.league_member_id === memberId && t.symbol === symbol)
-                    .pop();
-                  holdingsValue += position.quantity * (latestTrade?.price || 0);
-                }
-              });
-              
-              dataPoint[member.username] = memberCash[memberId] + holdingsValue;
+          // Calculate holdings value using last known trade price
+          Object.entries(portfolio.holdings).forEach(([symbol, quantity]) => {
+            if (quantity > 0) {
+              // Find the most recent trade price for this symbol
+              const latestTrade = trades
+                ?.filter((t: any) => t.symbol === symbol && t.league_member_id === member.id)
+                .pop();
+              const price = latestTrade?.price || 0;
+              holdingsValue += quantity * price;
             }
           });
           
-          dataPoints.push(dataPoint);
+          dataPoint[member.username] = portfolio.cash + holdingsValue;
         });
-      }
-
-      // If no trades, fill in remaining days with starting balance
-      if (dataPoints.length < timeline.length) {
-        timeline.slice(dataPoints.length).forEach(dayLabel => {
-          const dataPoint: ChartDataPoint = { date: dayLabel };
-          memberData.forEach(m => {
-            dataPoint[m.username] = startingBalance;
-          });
-          dataPoints.push(dataPoint);
-        });
+        
+        dataPoints.push(dataPoint);
       }
 
       setChartData(dataPoints);
       setLoading(false);
     };
 
-    fetchCompetitiveData();
+    fetchData();
   }, [leagueId, currentUserId, startingBalance, seasonStartDate, seasonLengthDays]);
 
   // Filter data based on time range
   const filteredData = useMemo(() => {
-    if (timeRange === "ALL" || chartData.length <= 7) return chartData;
-    
+    if (timeRange === "ALL") return chartData;
     const days = timeRange === "1W" ? 7 : 30;
     return chartData.slice(-days);
   }, [chartData, timeRange]);
@@ -239,6 +154,15 @@ export default function CompetitivePerformanceChart({
     return (
       <div className="h-64 flex items-center justify-center">
         <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (members.length === 0) {
+    return (
+      <div className="text-center py-8 text-zinc-500">
+        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>No members in this league yet.</p>
       </div>
     );
   }
@@ -254,7 +178,6 @@ export default function CompetitivePerformanceChart({
           <p className="text-sm text-zinc-500">See how you stack up against other players</p>
         </div>
         
-        {/* Time Range Selector */}
         <div className="flex gap-2">
           {(["1W", "1M", "ALL"] as const).map((range) => (
             <button
@@ -290,7 +213,7 @@ export default function CompetitivePerformanceChart({
         ))}
       </div>
 
-      <div className="h-64">
+      <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -300,17 +223,12 @@ export default function CompetitivePerformanceChart({
               fontSize={12}
               tickLine={false}
             />
-            <YAxis
-              stroke="#52525b"
+            <YAxis 
+              stroke="#52525b" 
               fontSize={12}
               tickLine={false}
-              tickFormatter={(value) => {
-                if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
-                return `$${value}`;
-              }}
-              domain={['dataMin - 5000', 'dataMax + 5000']}
-              allowDecimals={false}
+              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              domain={['auto', 'auto']}
             />
             <Tooltip 
               contentStyle={{ 
@@ -318,7 +236,7 @@ export default function CompetitivePerformanceChart({
                 border: '1px solid #27272a',
                 borderRadius: '8px'
               }}
-              formatter={(value: any) => [`$${Number(value).toLocaleString()}`, '']}
+              formatter={(value: any, name: string) => [`$${Number(value).toLocaleString()}`, name]}
             />
             {members.map((member) => (
               <Line 
