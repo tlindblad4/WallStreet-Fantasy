@@ -49,14 +49,20 @@ export default async function LeaguePage({
     .eq("user_id", session.user.id)
     .single();
 
-  // Get portfolio holdings
+  // Get portfolio holdings with stock prices
   const { data: holdings } = await supabase
     .from("portfolio_holdings")
-    .select("*")
+    .select(`
+      *,
+      stock_prices!inner(price)
+    `)
     .eq("league_member_id", member?.id);
 
   // Calculate actual total value (cash + holdings)
-  const holdingsValue = (holdings || []).reduce((sum, h) => sum + (h.current_value || 0), 0);
+  const holdingsValue = (holdings || []).reduce((sum, h) => {
+    const currentPrice = h.stock_prices?.price || h.current_price || h.average_cost || 0;
+    return sum + (h.shares * currentPrice);
+  }, 0);
   const cashBalance = member?.cash_balance || 0;
   const calculatedTotalValue = cashBalance + holdingsValue;
   
