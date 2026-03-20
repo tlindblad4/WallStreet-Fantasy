@@ -59,8 +59,22 @@ export default function MarketOverview() {
       setTrending(validStocks.sort((a, b) => b.volume - a.volume).slice(0, 5));
       
       // Sort by change % for gainers/losers
-      setGainers(validStocks.filter(s => s.changePercent > 0).sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
-      setLosers(validStocks.filter(s => s.changePercent < 0).sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
+      // If no gainers (market downturn), show best performers (least negative)
+      const positiveGainers = validStocks.filter(s => s.changePercent > 0);
+      if (positiveGainers.length > 0) {
+        setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
+      } else {
+        // Show best performers even if negative
+        setGainers(validStocks.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
+      }
+      
+      const negativeLosers = validStocks.filter(s => s.changePercent < 0);
+      if (negativeLosers.length > 0) {
+        setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
+      } else {
+        // Show worst performers even if positive
+        setLosers(validStocks.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
+      }
 
       setLoading(false);
     };
@@ -218,7 +232,7 @@ export default function MarketOverview() {
           
           <div className="space-y-2">
             {gainers.length === 0 ? (
-              <p className="text-center text-zinc-500 py-4">No gainers today</p>
+              <p className="text-center text-zinc-500 py-4">Loading market data...</p>
             ) : (
               gainers.map((stock) => (
                 <Link
@@ -249,7 +263,7 @@ export default function MarketOverview() {
           
           <div className="space-y-2">
             {losers.length === 0 ? (
-              <p className="text-center text-zinc-500 py-4">No losers today</p>
+              <p className="text-center text-zinc-500 py-4">Loading market data...</p>
             ) : (
               losers.map((stock) => (
                 <Link
