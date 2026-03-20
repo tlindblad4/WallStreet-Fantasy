@@ -70,30 +70,42 @@ export default function AchievementsPanel() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) return;
+      if (!user) {
+        console.log('No user found for achievements');
+        return;
+      }
+
+      console.log('Fetching achievements for user:', user.id);
 
       // Get user's unlocked achievements
-      const { data: userAchievements } = await supabase
+      const { data: userAchievements, error: achievementsError } = await supabase
         .from("user_achievements")
         .select("*")
         .eq("user_id", user.id);
+      
+      console.log('User achievements:', userAchievements, 'Error:', achievementsError);
 
       // Get user's stats
-      const { data: trades } = await supabase
+      const { data: trades, error: tradesError } = await supabase
         .from("trades")
         .select("type, quantity, price")
         .eq("user_id", user.id);
 
-      const { data: memberships } = await supabase
+      const { data: memberships, error: membershipsError } = await supabase
         .from("league_members")
         .select("current_rank, total_return")
         .eq("user_id", user.id);
+
+      console.log('Trades:', trades?.length, 'Error:', tradesError);
+      console.log('Memberships:', memberships?.length, 'Error:', membershipsError);
 
       // Calculate progress
       const tradeCount = trades?.length || 0;
       const totalProfit = memberships?.reduce((sum, m) => sum + (m.total_return || 0), 0) || 0;
       const leagueCount = memberships?.length || 0;
       const hasRank1 = memberships?.some(m => m.current_rank === 1) || false;
+
+      console.log('Stats:', { tradeCount, totalProfit, leagueCount, hasRank1 });
 
       const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
 
