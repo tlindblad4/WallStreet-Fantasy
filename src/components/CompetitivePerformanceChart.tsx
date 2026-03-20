@@ -21,6 +21,8 @@ interface CompetitivePerformanceChartProps {
   leagueId: string;
   currentUserId: string;
   startingBalance: number;
+  seasonStartDate?: string;
+  seasonLengthDays?: number;
 }
 
 const COLORS = [
@@ -34,10 +36,12 @@ const COLORS = [
   "#84cc16", // lime
 ];
 
-export default function CompetitivePerformanceChart({ 
-  leagueId, 
+export default function CompetitivePerformanceChart({
+  leagueId,
   currentUserId,
-  startingBalance 
+  startingBalance,
+  seasonStartDate,
+  seasonLengthDays = 90
 }: CompetitivePerformanceChartProps) {
   const [members, setMembers] = useState<MemberPerformance[]>([]);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
@@ -85,20 +89,52 @@ export default function CompetitivePerformanceChart({
 
       // Build chart data
       const dataPoints: ChartDataPoint[] = [];
-      
+
       // Create a map of member_id to user data
       const memberMap = new Map(
         leagueMembers.map((m: any) => [m.id, memberData.find(md => md.userId === m.user_id)])
       );
 
-      // Get unique dates from all trades
-      const allDates = new Set<string>();
-      allTrades?.forEach((trade: any) => {
-        allDates.add(new Date(trade.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      });
+      // Determine league start date
+      const leagueStartDate = seasonStartDate ? new Date(seasonStartDate) : new Date();
+      const today = new Date();
+      const daysRunning = Math.max(1, Math.ceil((today.getTime() - leagueStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+      // Generate timeline based on league settings
+      const generateTimeline = () => {
+        const timeline: string[] = [];
+        const totalDays = Math.min(daysRunning, seasonLengthDays);
+
+        // Always show start
+        timeline.push("Day 1");
+
+        // Add intermediate points based on how long league has been running
+        if (totalDays > 1) {
+          if (totalDays <= 7) {
+            // Daily for first week
+            for (let i = 2; i <= totalDays; i++) {
+              timeline.push(`Day ${i}`);
+            }
+          } else if (totalDays <= 30) {
+            // Every few days for first month
+            for (let i = 2; i <= totalDays; i += 2) {
+              timeline.push(`Day ${i}`);
+            }
+          } else {
+            // Weekly after first month
+            for (let i = 7; i <= totalDays; i += 7) {
+              timeline.push(`Day ${i}`);
+            }
+          }
+        }
+
+        return timeline;
+      };
+
+      const timeline = generateTimeline();
 
       // Add starting point
-      const startingPoint: ChartDataPoint = { date: "Start" };
+      const startingPoint: ChartDataPoint = { date: "Day 1" };
       memberData.forEach(m => {
         startingPoint[m.username] = startingBalance;
       });
@@ -115,23 +151,25 @@ export default function CompetitivePerformanceChart({
           memberCash[id] = startingBalance;
         });
 
-        // Group trades by date
-        const tradesByDate = new Map<string, any[]>();
+        // Group trades by day number (relative to league start)
+        const tradesByDay = new Map<number, any[]>();
         allTrades.forEach((trade: any) => {
-          const date = new Date(trade.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          if (!tradesByDate.has(date)) {
-            tradesByDate.set(date, []);
+          const tradeDate = new Date(trade.created_at);
+          const dayNumber = Math.ceil((tradeDate.getTime() - leagueStartDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (!tradesByDay.has(dayNumber)) {
+            tradesByDay.set(dayNumber, []);
           }
-          tradesByDate.get(date)?.push(trade);
+          tradesByDay.get(dayNumber)?.push(trade);
         });
 
-        // Process each date
-        Array.from(tradesByDate.keys()).forEach(date => {
-          const dayTrades = tradesByDate.get(date) || [];
-          
+        // Process each day in timeline
+        timeline.slice(1).forEach(dayLabel => {
+          const dayNumber = parseInt(dayLabel.replace('Day ', ''));
+          const dayTrades = tradesByDay.get(dayNumber) || [];
+
           dayTrades.forEach((trade: any) => {
             const tradeValue = trade.quantity * trade.price;
-            
+
             if (trade.type === "buy") {
               memberCash[trade.league_member_id] -= tradeValue;
               if (!memberHoldings[trade.league_member_id][trade.symbol]) {
@@ -147,7 +185,7 @@ export default function CompetitivePerformanceChart({
           });
 
           // Calculate total value for each member
-          const dataPoint: ChartDataPoint = { date };
+          const dataPoint: ChartDataPoint = { date: dayLabel };
           
           memberIds.forEach((memberId: string) => {
             const member = memberMap.get(memberId);
@@ -171,14 +209,15 @@ export default function CompetitivePerformanceChart({
         });
       }
 
-      // If no trades, just show starting point
-      if (dataPoints.length === 1) {
-        const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const todayPoint: ChartDataPoint = { date: today };
-        memberData.forEach(m => {
-          todayPoint[m.username] = startingBalance;
+      // If no trades, fill in remaining days with starting balance
+      if (dataPoints.length < timeline.length) {
+        timeline.slice(dataPoints.length).forEach(dayLabel => {
+          const dataPoint: ChartDataPoint = { date: dayLabel };
+          memberData.forEach(m => {
+            dataPoint[m.username] = startingBalance;
+          });
+          dataPoints.push(dataPoint);
         });
-        dataPoints.push(todayPoint);
       }
 
       setChartData(dataPoints);
@@ -186,7 +225,7 @@ export default function CompetitivePerformanceChart({
     };
 
     fetchCompetitiveData();
-  }, [leagueId, currentUserId, startingBalance]);
+  }, [leagueId, currentUserId, startingBalance, seasonStartDate, seasonLengthDays]);
 
   // Filter data based on time range
   const filteredData = useMemo(() => {

@@ -161,6 +161,8 @@ export default async function LeaguePage({
             leagueId={leagueId}
             currentUserId={session.user.id}
             startingBalance={startingBalance}
+            seasonStartDate={league.season_start_date}
+            seasonLengthDays={league.season_length_days}
           />
         </div>
 
