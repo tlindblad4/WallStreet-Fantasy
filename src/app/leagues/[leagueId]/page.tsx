@@ -11,6 +11,7 @@ import PortfolioRefresh from "@/components/PortfolioRefresh";
 import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
 import CompetitivePerformanceChart from "@/components/CompetitivePerformanceChart";
 import SharePortfolio from "@/components/SharePortfolio";
+import DaysLeftTracker from "@/components/DaysLeftTracker";
 
 export default async function LeaguePage({ 
   params 
