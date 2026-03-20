@@ -105,7 +105,8 @@ export default async function LeaguePage({
         {/* Days Left Countdown - At the top */}
         <div className="mb-6">
           <DaysLeftTracker 
-            seasonEndDate={league.season_end_date || new Date(Date.now() + (league.season_length_days || 90) * 24 * 60 * 60 * 1000).toISOString()} 
+            seasonStartDate={league.created_at}
+            seasonEndDate={league.season_end_date || new Date(new Date(league.created_at).getTime() + (league.season_length_days || 90) * 24 * 60 * 60 * 1000).toISOString()} 
             seasonLengthDays={league.season_length_days || 90}
           />
         </div>

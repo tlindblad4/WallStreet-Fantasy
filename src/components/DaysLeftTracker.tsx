@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { Clock, Calendar } from "lucide-react";
 
 interface DaysLeftTrackerProps {
+  seasonStartDate: string;
   seasonEndDate: string;
   seasonLengthDays: number;
 }
 
-export default function DaysLeftTracker({ seasonEndDate, seasonLengthDays }: DaysLeftTrackerProps) {
+export default function DaysLeftTracker({ seasonStartDate, seasonEndDate, seasonLengthDays }: DaysLeftTrackerProps) {
   const [daysLeft, setDaysLeft] = useState(0);
   const [daysPassed, setDaysPassed] = useState(0);
   const [progressPercent, setProgressPercent] = useState(0);
@@ -16,9 +17,9 @@ export default function DaysLeftTracker({ seasonEndDate, seasonLengthDays }: Day
 
   useEffect(() => {
     const calculateDays = () => {
+      const start = new Date(seasonStartDate);
       const end = new Date(seasonEndDate);
       const now = new Date();
-      const start = new Date(end.getTime() - seasonLengthDays * 24 * 60 * 60 * 1000);
       
       const totalDuration = end.getTime() - start.getTime();
       const timePassed = now.getTime() - start.getTime();
