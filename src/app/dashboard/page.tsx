@@ -10,6 +10,7 @@ import AchievementsPanel from "@/components/AchievementsPanel";
 import MarketOverview from "@/components/MarketOverview";
 import { GlassCard, GradientText, PremiumStatCard } from "@/components/ui/PremiumCards";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations/FadeIn";
+import { PremiumLeagueCard } from "@/components/PremiumLeagueCard";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -184,15 +185,16 @@ export default async function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {leaguesWithCalculatedValues.map((membership) => (
-                <LeagueCard 
-                  key={membership.id} 
-                  membership={membership} 
-                  currentUserId={session.user.id} 
-                />
+                <StaggerItem key={membership.id}>
+                  <PremiumLeagueCard 
+                    membership={membership} 
+                    currentUserId={session.user.id} 
+                  />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerContainer>
           )}
         </div>
       </main>
