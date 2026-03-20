@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { TrendingUp, TrendingDown, DollarSign, Package } from "lucide-react";
 
@@ -21,16 +22,27 @@ interface HoldingsListProps {
 }
 
 export default function HoldingsList({ holdings, onSelect }: HoldingsListProps) {
-  // Sort by current value (descending)
-  const sortedHoldings = [...holdings].sort(
-    (a, b) => (b.current_value || 0) - (a.current_value || 0)
-  );
+  // Memoize calculations to prevent re-computation on every render
+  const { sortedHoldings, totalValue, totalCost, totalGainLoss, totalGainLossPercent } = useMemo(() => {
+    // Sort by current value (descending)
+    const sorted = [...holdings].sort(
+      (a, b) => (b.current_value || 0) - (a.current_value || 0)
+    );
 
-  // Calculate totals
-  const totalValue = sortedHoldings.reduce((sum, h) => sum + (h.current_value || 0), 0);
-  const totalCost = sortedHoldings.reduce((sum, h) => sum + (h.shares * h.average_cost), 0);
-  const totalGainLoss = totalValue - totalCost;
-  const totalGainLossPercent = totalCost > 0 ? (totalGainLoss / totalCost) * 100 : 0;
+    // Calculate totals
+    const tValue = sorted.reduce((sum, h) => sum + (h.current_value || 0), 0);
+    const tCost = sorted.reduce((sum, h) => sum + (h.shares * h.average_cost), 0);
+    const tGainLoss = tValue - tCost;
+    const tGainLossPercent = tCost > 0 ? (tGainLoss / tCost) * 100 : 0;
+
+    return {
+      sortedHoldings: sorted,
+      totalValue: tValue,
+      totalCost: tCost,
+      totalGainLoss: tGainLoss,
+      totalGainLossPercent: tGainLossPercent
+    };
+  }, [holdings]);
 
   if (holdings.length === 0) {
     return (
