@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TrendingUp, TrendingDown, Activity, Sparkles, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
-const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || "d6gttihr01qg85h02hi0d6gttihr01qg85h02hig";
+// Alpha Vantage API - Free tier: 5 calls per minute, 500/day
+const ALPHA_VANTAGE_API_KEY = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY || "demo";
 
 interface MarketIndex {
   symbol: string;
@@ -23,18 +24,62 @@ interface TrendingStock {
   volume: number;
 }
 
+// Fallback to Finnhub if Alpha Vantage fails
+const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || "d6gttihr01qg85h02hi0d6gttihr01qg85h02hig";
+
 export default function MarketOverview() {
   const [indices, setIndices] = useState<MarketIndex[]>([]);
   const [trending, setTrending] = useState<TrendingStock[]>([]);
   const [gainers, setGainers] = useState<TrendingStock[]>([]);
   const [losers, setLosers] = useState<TrendingStock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataSource, setDataSource] = useState<string>("");
 
   useEffect(() => {
     const fetchMarketData = async () => {
       setLoading(true);
       
-      // Fetch major indices - use fallback symbols if market indices fail
+      // Try Alpha Vantage first, fallback to Finnhub
+      const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX'];
+      
+      // Fetch stock data
+      const stockData = await Promise.all(
+        trendingSymbols.map(symbol => fetchStockAlphaVantage(symbol))
+      );
+      
+      let validStocks = stockData.filter(Boolean) as TrendingStock[];
+      
+      // If Alpha Vantage fails, try Finnhub
+      if (validStocks.length === 0) {
+        console.log('Alpha Vantage failed, trying Finnhub...');
+        const fallbackData = await Promise.all(
+          trendingSymbols.map(symbol => fetchStockFinnhub(symbol))
+        );
+        validStocks = fallbackData.filter(Boolean) as TrendingStock[];
+        setDataSource("Finnhub (delayed)");
+      } else {
+        setDataSource("Alpha Vantage");
+      }
+      
+      // Sort by volume for trending
+      setTrending(validStocks.sort((a, b) => b.volume - a.volume).slice(0, 5));
+      
+      // Sort by change % for gainers/losers
+      const positiveGainers = validStocks.filter(s => s.changePercent > 0);
+      if (positiveGainers.length > 0) {
+        setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
+      } else {
+        setGainers(validStocks.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
+      }
+      
+      const negativeLosers = validStocks.filter(s => s.changePercent < 0);
+      if (negativeLosers.length > 0) {
+        setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
+      } else {
+        setLosers(validStocks.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
+      }
+
+      // Fetch indices (using Finnhub as Alpha Vantage doesn't have real-time indices on free tier)
       const indicesData = await Promise.all([
         fetchIndex('^GSPC', 'S&P 500'),
         fetchIndex('^DJI', 'Dow Jones'),
@@ -43,38 +88,7 @@ export default function MarketOverview() {
         fetchIndex('BINANCE:ETHUSDT', 'Ethereum'),
       ]);
       
-      const validIndices = indicesData.filter(Boolean) as MarketIndex[];
-      console.log('Valid indices:', validIndices);
-      setIndices(validIndices);
-
-      // Fetch trending stocks (using popular symbols)
-      const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX'];
-      const trendingData = await Promise.all(
-        trendingSymbols.map(symbol => fetchStock(symbol))
-      );
-      
-      const validStocks = trendingData.filter(Boolean) as TrendingStock[];
-      
-      // Sort by volume for trending
-      setTrending(validStocks.sort((a, b) => b.volume - a.volume).slice(0, 5));
-      
-      // Sort by change % for gainers/losers
-      // If no gainers (market downturn), show best performers (least negative)
-      const positiveGainers = validStocks.filter(s => s.changePercent > 0);
-      if (positiveGainers.length > 0) {
-        setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
-      } else {
-        // Show best performers even if negative
-        setGainers(validStocks.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
-      }
-      
-      const negativeLosers = validStocks.filter(s => s.changePercent < 0);
-      if (negativeLosers.length > 0) {
-        setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
-      } else {
-        // Show worst performers even if positive
-        setLosers(validStocks.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
-      }
+      setIndices(indicesData.filter(Boolean) as MarketIndex[]);
 
       setLoading(false);
     };
@@ -86,39 +100,38 @@ export default function MarketOverview() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchIndex = async (symbol: string, name: string): Promise<MarketIndex | null> => {
+  const fetchStockAlphaVantage = async (symbol: string): Promise<TrendingStock | null> => {
     try {
-      console.log(`Fetching index: ${symbol}`);
-      // Add timestamp to bust cache
-      const timestamp = Date.now();
+      // Alpha Vantage Global Quote endpoint
       const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`
+        `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
       );
       const data = await response.json();
       
-      console.log(`Index ${symbol} data:`, data);
-      
-      // Check if data is valid and recent (within last 24 hours)
-      const dataTimestamp = data.t ? data.t * 1000 : 0;
-      const isRecent = Date.now() - dataTimestamp < 24 * 60 * 60 * 1000;
-      
-      if (data.c && data.c > 0) {
+      const quote = data['Global Quote'];
+      if (quote && quote['05. price']) {
+        const price = parseFloat(quote['05. price']);
+        const change = parseFloat(quote['09. change']);
+        const changePercent = parseFloat(quote['10. change percent'].replace('%', ''));
+        const volume = parseInt(quote['06. volume']);
+        
         return {
           symbol,
-          name,
-          price: data.c,
-          change: data.d || 0,
-          changePercent: data.dp || 0,
+          name: symbol, // Alpha Vantage free tier doesn't include company names
+          price,
+          change,
+          changePercent,
+          volume,
         };
       }
       return null;
     } catch (err) {
-      console.error(`Error fetching ${symbol}:`, err);
+      console.error(`Alpha Vantage error for ${symbol}:`, err);
       return null;
     }
   };
 
-  const fetchStock = async (symbol: string): Promise<TrendingStock | null> => {
+  const fetchStockFinnhub = async (symbol: string): Promise<TrendingStock | null> => {
     try {
       const timestamp = Date.now();
       const [quoteRes, profileRes] = await Promise.all([
@@ -129,8 +142,6 @@ export default function MarketOverview() {
       const quote = await quoteRes.json();
       const profile = await profileRes.json();
       
-      console.log(`Stock ${symbol} quote:`, quote);
-      
       if (quote.c && quote.c > 0) {
         return {
           symbol,
@@ -139,6 +150,30 @@ export default function MarketOverview() {
           change: quote.d || 0,
           changePercent: quote.dp || 0,
           volume: quote.v || 0,
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error(`Finnhub error for ${symbol}:`, err);
+      return null;
+    }
+  };
+
+  const fetchIndex = async (symbol: string, name: string): Promise<MarketIndex | null> => {
+    try {
+      const timestamp = Date.now();
+      const response = await fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`
+      );
+      const data = await response.json();
+      
+      if (data.c && data.c > 0) {
+        return {
+          symbol,
+          name,
+          price: data.c,
+          change: data.d || 0,
+          changePercent: data.dp || 0,
         };
       }
       return null;
@@ -167,9 +202,11 @@ export default function MarketOverview() {
   if (indices.length === 0 && trending.length === 0) {
     return (
       <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Activity className="w-5 h-5 text-emerald-400" />
-          <h2 className="text-lg font-semibold">Market Overview</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-lg font-semibold">Market Overview</h2>
+          </div>
         </div>
         <div className="text-center py-8">
           <p className="text-zinc-500">Unable to load market data</p>
@@ -183,9 +220,14 @@ export default function MarketOverview() {
     <div className="space-y-6">
       {/* Market Indices */}
       <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Activity className="w-5 h-5 text-emerald-400" />
-          <h2 className="text-lg font-semibold">Market Overview</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-lg font-semibold">Market Overview</h2>
+          </div>
+          <span className="text-xs text-zinc-500">
+            {dataSource.includes("delayed") ? "Delayed 15-20 min" : "Real-time"}
+          </span>
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -204,9 +246,12 @@ export default function MarketOverview() {
 
       {/* Trending Stocks */}
       <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="w-5 h-5 text-yellow-400" />
-          <h2 className="text-lg font-semibold">Trending Stocks</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-yellow-400" />
+            <h2 className="text-lg font-semibold">Trending Stocks</h2>
+          </div>
+          <span className="text-xs text-zinc-500">{dataSource}</span>
         </div>
         
         <div className="space-y-2">
@@ -236,9 +281,12 @@ export default function MarketOverview() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Top Gainers */}
         <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-lg font-semibold">Top Gainers</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-lg font-semibold">Top Gainers</h2>
+            </div>
+            <span className="text-xs text-zinc-500">{dataSource}</span>
           </div>
           
           <div className="space-y-2">
@@ -267,9 +315,12 @@ export default function MarketOverview() {
 
         {/* Top Losers */}
         <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingDown className="w-5 h-5 text-red-400" />
-            <h2 className="text-lg font-semibold">Top Losers</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-red-400" />
+              <h2 className="text-lg font-semibold">Top Losers</h2>
+            </div>
+            <span className="text-xs text-zinc-500">{dataSource}</span>
           </div>
           
           <div className="space-y-2">
