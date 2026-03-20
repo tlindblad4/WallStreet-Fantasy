@@ -131,6 +131,16 @@ export default async function LeaguePage({
           </div>
         </div>
 
+        {/* Days Left Tracker */}
+        {league.season_end_date && (
+          <div className="mb-6">
+            <DaysLeftTracker 
+              seasonEndDate={league.season_end_date} 
+              seasonLengthDays={league.season_length_days || 90}
+            />
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-4 mb-8">
           <Link href={`/leagues/${leagueId}/trade`} className="flex-1">
