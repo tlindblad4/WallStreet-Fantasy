@@ -217,22 +217,26 @@ export default function MarketOverview() {
           </div>
           
           <div className="space-y-2">
-            {gainers.map((stock) => (
-              <Link
-                key={stock.symbol}
-                href={`/asset/${stock.symbol}`}
-                className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-lg hover:bg-emerald-500/10 transition-colors"
-              >
-                <div>
-                  <p className="font-semibold">{stock.symbol}</p>
-                  <p className="text-xs text-zinc-500">{stock.name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">${stock.price.toFixed(2)}</p>
-                  <p className="text-xs text-emerald-400">+{stock.changePercent.toFixed(2)}%</p>
-                </div>
-              </Link>
-            ))}
+            {gainers.length === 0 ? (
+              <p className="text-center text-zinc-500 py-4">No gainers today</p>
+            ) : (
+              gainers.map((stock) => (
+                <Link
+                  key={stock.symbol}
+                  href={`/asset/${stock.symbol}`}
+                  className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-lg hover:bg-emerald-500/10 transition-colors"
+                >
+                  <div>
+                    <p className="font-semibold">{stock.symbol}</p>
+                    <p className="text-xs text-zinc-500">{stock.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">${stock.price.toFixed(2)}</p>
+                    <p className="text-xs text-emerald-400">+{stock.changePercent.toFixed(2)}%</p>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
 
@@ -244,22 +248,26 @@ export default function MarketOverview() {
           </div>
           
           <div className="space-y-2">
-            {losers.map((stock) => (
-              <Link
-                key={stock.symbol}
-                href={`/asset/${stock.symbol}`}
-                className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/10 rounded-lg hover:bg-red-500/10 transition-colors"
-              >
-                <div>
-                  <p className="font-semibold">{stock.symbol}</p>
-                  <p className="text-xs text-zinc-500">{stock.name}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">${stock.price.toFixed(2)}</p>
-                  <p className="text-xs text-red-400">{stock.changePercent.toFixed(2)}%</p>
-                </div>
-              </Link>
-            ))}
+            {losers.length === 0 ? (
+              <p className="text-center text-zinc-500 py-4">No losers today</p>
+            ) : (
+              losers.map((stock) => (
+                <Link
+                  key={stock.symbol}
+                  href={`/asset/${stock.symbol}`}
+                  className="flex items-center justify-between p-3 bg-red-500/5 border border-red-500/10 rounded-lg hover:bg-red-500/10 transition-colors"
+                >
+                  <div>
+                    <p className="font-semibold">{stock.symbol}</p>
+                    <p className="text-xs text-zinc-500">{stock.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">${stock.price.toFixed(2)}</p>
+                    <p className="text-xs text-red-400">{stock.changePercent.toFixed(2)}%</p>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </div>
