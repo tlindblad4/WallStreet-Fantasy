@@ -89,50 +89,61 @@ export default function MarketOverview() {
   const fetchIndex = async (symbol: string, name: string): Promise<MarketIndex | null> => {
     try {
       console.log(`Fetching index: ${symbol}`);
+      // Add timestamp to bust cache
+      const timestamp = Date.now();
       const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`
+        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`
       );
       const data = await response.json();
       
       console.log(`Index ${symbol} data:`, data);
+      
+      // Check if data is valid and recent (within last 24 hours)
+      const dataTimestamp = data.t ? data.t * 1000 : 0;
+      const isRecent = Date.now() - dataTimestamp < 24 * 60 * 60 * 1000;
       
       if (data.c && data.c > 0) {
         return {
           symbol,
           name,
           price: data.c,
-          change: data.d,
-          changePercent: data.dp,
+          change: data.d || 0,
+          changePercent: data.dp || 0,
         };
       }
       return null;
-    } catch {
+    } catch (err) {
+      console.error(`Error fetching ${symbol}:`, err);
       return null;
     }
   };
 
   const fetchStock = async (symbol: string): Promise<TrendingStock | null> => {
     try {
+      const timestamp = Date.now();
       const [quoteRes, profileRes] = await Promise.all([
-        fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`),
-        fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`),
+        fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`),
+        fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}&_=${timestamp}`),
       ]);
       
       const quote = await quoteRes.json();
       const profile = await profileRes.json();
       
-      if (quote.c) {
+      console.log(`Stock ${symbol} quote:`, quote);
+      
+      if (quote.c && quote.c > 0) {
         return {
           symbol,
           name: profile.name || symbol,
           price: quote.c,
-          change: quote.d,
-          changePercent: quote.dp,
+          change: quote.d || 0,
+          changePercent: quote.dp || 0,
           volume: quote.v || 0,
         };
       }
       return null;
-    } catch {
+    } catch (err) {
+      console.error(`Error fetching ${symbol}:`, err);
       return null;
     }
   };
