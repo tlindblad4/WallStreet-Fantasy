@@ -7,6 +7,7 @@ import DeleteLeagueButton from "@/components/DeleteLeagueButton";
 import LogoutButton from "@/components/LogoutButton";
 import NotificationBell from "@/components/NotificationBell";
 import AchievementsPanel from "@/components/AchievementsPanel";
+import MarketOverview from "@/components/MarketOverview";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -127,6 +128,11 @@ export default async function DashboardPage() {
               Join League
             </Button>
           </Link>
+        </div>
+
+        {/* Market Overview */}
+        <div className="mb-8">
+          <MarketOverview />
         </div>
 
         {/* Achievements */}

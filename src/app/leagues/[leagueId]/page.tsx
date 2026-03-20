@@ -9,6 +9,7 @@ import PortfolioChart from "@/components/PortfolioChart";
 import HoldingsList from "@/components/HoldingsList";
 import PortfolioRefresh from "@/components/PortfolioRefresh";
 import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
+import SharePortfolio from "@/components/SharePortfolio";
 
 export default async function LeaguePage({ 
   params 
@@ -141,6 +142,16 @@ export default async function LeaguePage({
               Leaderboard
             </Button>
           </Link>
+        </div>
+
+        {/* Share Performance */}
+        <div className="mb-8">
+          <SharePortfolio
+            leagueName={league.name}
+            totalReturn={calculatedReturn}
+            returnPercent={calculatedReturnPercent}
+            rank={member?.current_rank || 0}
+          />
         </div>
 
         {/* Portfolio Performance Chart */}
