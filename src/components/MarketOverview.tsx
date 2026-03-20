@@ -65,12 +65,21 @@ export default function MarketOverview() {
       setTrending(validStocks.sort((a, b) => b.volume - a.volume).slice(0, 5));
       
       // Sort by change % for gainers/losers
+      // Remove duplicates first (in case same stock appears twice)
+      const uniqueStocks = validStocks.filter((stock, index, self) => 
+        index === self.findIndex((s) => s.symbol === stock.symbol)
+      );
+      
+      console.log('Unique stocks:', uniqueStocks.map(s => `${s.symbol}: ${s.changePercent}%`));
+      
       // Only show stocks with positive change in gainers
-      const positiveGainers = validStocks.filter(s => s.changePercent > 0);
+      const positiveGainers = uniqueStocks.filter(s => s.changePercent > 0);
+      console.log('Gainers:', positiveGainers.map(s => `${s.symbol}: ${s.changePercent}%`));
       setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
       
       // Only show stocks with negative change in losers
-      const negativeLosers = validStocks.filter(s => s.changePercent < 0);
+      const negativeLosers = uniqueStocks.filter(s => s.changePercent < 0);
+      console.log('Losers:', negativeLosers.map(s => `${s.symbol}: ${s.changePercent}%`));
       setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
 
       // Fetch indices (using Finnhub as Alpha Vantage doesn't have real-time indices on free tier)
