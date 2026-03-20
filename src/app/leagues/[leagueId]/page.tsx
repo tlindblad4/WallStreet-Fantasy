@@ -103,14 +103,12 @@ export default async function LeaguePage({
 
       <main className="max-w-5xl mx-auto px-4 py-6">
         {/* Days Left Countdown - At the top */}
-        {league.season_end_date && (
-          <div className="mb-6">
-            <DaysLeftTracker 
-              seasonEndDate={league.season_end_date} 
-              seasonLengthDays={league.season_length_days || 90}
-            />
-          </div>
-        )}
+        <div className="mb-6">
+          <DaysLeftTracker 
+            seasonEndDate={league.season_end_date || new Date(Date.now() + (league.season_length_days || 90) * 24 * 60 * 60 * 1000).toISOString()} 
+            seasonLengthDays={league.season_length_days || 90}
+          />
+        </div>
 
         {/* Auto-refresh prices */}
         {member && (
