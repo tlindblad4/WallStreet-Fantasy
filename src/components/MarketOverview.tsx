@@ -34,16 +34,18 @@ export default function MarketOverview() {
     const fetchMarketData = async () => {
       setLoading(true);
       
-      // Fetch major indices
+      // Fetch major indices - use fallback symbols if market indices fail
       const indicesData = await Promise.all([
         fetchIndex('^GSPC', 'S&P 500'),
         fetchIndex('^DJI', 'Dow Jones'),
         fetchIndex('^IXIC', 'Nasdaq'),
-        fetchIndex('BTC-USD', 'Bitcoin'),
-        fetchIndex('ETH-USD', 'Ethereum'),
+        fetchIndex('BINANCE:BTCUSDT', 'Bitcoin'),
+        fetchIndex('BINANCE:ETHUSDT', 'Ethereum'),
       ]);
       
-      setIndices(indicesData.filter(Boolean) as MarketIndex[]);
+      const validIndices = indicesData.filter(Boolean) as MarketIndex[];
+      console.log('Valid indices:', validIndices);
+      setIndices(validIndices);
 
       // Fetch trending stocks (using popular symbols)
       const trendingSymbols = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX'];
@@ -72,12 +74,15 @@ export default function MarketOverview() {
 
   const fetchIndex = async (symbol: string, name: string): Promise<MarketIndex | null> => {
     try {
+      console.log(`Fetching index: ${symbol}`);
       const response = await fetch(
         `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`
       );
       const data = await response.json();
       
-      if (data.c) {
+      console.log(`Index ${symbol} data:`, data);
+      
+      if (data.c && data.c > 0) {
         return {
           symbol,
           name,
@@ -128,6 +133,22 @@ export default function MarketOverview() {
               <div key={i} className="h-20 bg-zinc-800 rounded" />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if no data loaded
+  if (indices.length === 0 && trending.length === 0) {
+    return (
+      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Activity className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-lg font-semibold">Market Overview</h2>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-zinc-500">Unable to load market data</p>
+          <p className="text-sm text-zinc-600 mt-2">Please check your connection and refresh</p>
         </div>
       </div>
     );
