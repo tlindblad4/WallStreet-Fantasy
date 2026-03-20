@@ -65,19 +65,13 @@ export default function MarketOverview() {
       setTrending(validStocks.sort((a, b) => b.volume - a.volume).slice(0, 5));
       
       // Sort by change % for gainers/losers
+      // Only show stocks with positive change in gainers
       const positiveGainers = validStocks.filter(s => s.changePercent > 0);
-      if (positiveGainers.length > 0) {
-        setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
-      } else {
-        setGainers(validStocks.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
-      }
+      setGainers(positiveGainers.sort((a, b) => b.changePercent - a.changePercent).slice(0, 5));
       
+      // Only show stocks with negative change in losers
       const negativeLosers = validStocks.filter(s => s.changePercent < 0);
-      if (negativeLosers.length > 0) {
-        setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
-      } else {
-        setLosers(validStocks.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
-      }
+      setLosers(negativeLosers.sort((a, b) => a.changePercent - b.changePercent).slice(0, 5));
 
       // Fetch indices (using Finnhub as Alpha Vantage doesn't have real-time indices on free tier)
       const indicesData = await Promise.all([
@@ -291,7 +285,7 @@ export default function MarketOverview() {
           
           <div className="space-y-2">
             {gainers.length === 0 ? (
-              <p className="text-center text-zinc-500 py-4">Loading market data...</p>
+              <p className="text-center text-zinc-500 py-4">No gainers today</p>
             ) : (
               gainers.map((stock) => (
                 <Link
@@ -325,7 +319,7 @@ export default function MarketOverview() {
           
           <div className="space-y-2">
             {losers.length === 0 ? (
-              <p className="text-center text-zinc-500 py-4">Loading market data...</p>
+              <p className="text-center text-zinc-500 py-4">No losers today</p>
             ) : (
               losers.map((stock) => (
                 <Link
