@@ -68,13 +68,25 @@ export default function CompetitivePerformanceChart({
         .in("league_member_id", memberIds)
         .order("created_at", { ascending: true });
 
-      // Determine league start date
-      const startDate = seasonStartDate ? new Date(seasonStartDate) : new Date();
+      // Determine league start date - use joined_at of first member if no season start date
+      let startDate: Date;
+      if (seasonStartDate) {
+        startDate = new Date(seasonStartDate);
+      } else if (trades && trades.length > 0) {
+        startDate = new Date(trades[0].created_at);
+      } else {
+        // Default to 7 days ago to show some history
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+      }
+      
       const today = new Date();
-      const daysRunning = Math.max(1, Math.min(
+      const daysRunning = Math.max(2, Math.min(
         Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
         seasonLengthDays
       ));
+      
+      console.log('Start date:', startDate, 'Days running:', daysRunning);
 
       // Generate data points for each day
       const dataPoints: ChartDataPoint[] = [];
@@ -136,6 +148,7 @@ export default function CompetitivePerformanceChart({
         dataPoints.push(dataPoint);
       }
 
+      console.log('Chart data points:', dataPoints.length, dataPoints);
       setChartData(dataPoints);
       setLoading(false);
     };
