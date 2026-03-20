@@ -110,10 +110,10 @@ export default function SectorAllocation({ holdings }: SectorAllocationProps) {
                 border: '1px solid #27272a',
                 borderRadius: '8px',
               }}
-              formatter={(value: number) => [
-                `$${value.toLocaleString()} (${((value / totalValue) * 100).toFixed(1)}%)`,
-                ''
-              ]}
+              formatter={(value) => {
+                const numValue = Number(value);
+                return [`$${numValue.toLocaleString()} (${((numValue / totalValue) * 100).toFixed(1)}%)`, ''];
+              }}
             />
             <Legend
               verticalAlign="middle"
