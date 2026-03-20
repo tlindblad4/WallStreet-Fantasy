@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Trophy, TrendingUp, TrendingDown, Users, ArrowRight } from "lucide-react";
-import { GlassCard } from "./PremiumCards";
-import { PremiumButton, PremiumBadge, PremiumAvatar, PremiumProgressBar } from "./PremiumElements";
-import { FadeIn } from "../animations/FadeIn";
+import { GlassCard } from "./ui/PremiumCards";
+import { PremiumButton, PremiumBadge, PremiumAvatar, PremiumProgressBar } from "./ui/PremiumElements";
+import { FadeIn } from "./animations/FadeIn";
 
 interface PremiumLeagueCardProps {
   membership: {
