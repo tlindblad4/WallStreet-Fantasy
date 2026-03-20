@@ -204,23 +204,6 @@ export default async function LeaguePage({
           <HoldingsList holdings={holdings || []} />
         </div>
 
-        {/* Invite Friends Section - Always show for commissioners */}
-        {isCommissioner && (
-          <div className="mb-8">
-            {inviteCode ? (
-              <InviteShare
-                inviteCode={inviteCode}
-                leagueName={league.name}
-                leagueId={leagueId}
-              />
-            ) : (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-                <p className="text-yellow-400">Loading invite code...</p>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* League Info */}
         <div className="bg-white/5 rounded-xl p-6">
           <h2 className="text-lg font-semibold mb-4">League Settings</h2>
