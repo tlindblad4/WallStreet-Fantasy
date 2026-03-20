@@ -261,12 +261,17 @@ export default function CompetitivePerformanceChart({
               fontSize={12}
               tickLine={false}
             />
-            <YAxis 
-              stroke="#52525b" 
+            <YAxis
+              stroke="#52525b"
               fontSize={12}
               tickLine={false}
-              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
-              domain={['auto', 'auto']}
+              tickFormatter={(value) => {
+                if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+                if (value >= 1000) return `$${(value / 1000).toFixed(0)}k`;
+                return `$${value}`;
+              }}
+              domain={['dataMin - 5000', 'dataMax + 5000']}
+              allowDecimals={false}
             />
             <Tooltip 
               contentStyle={{ 
