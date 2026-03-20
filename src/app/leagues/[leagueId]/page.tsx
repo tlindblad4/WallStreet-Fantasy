@@ -9,6 +9,7 @@ import PortfolioChart from "@/components/PortfolioChart";
 import HoldingsList from "@/components/HoldingsList";
 import PortfolioRefresh from "@/components/PortfolioRefresh";
 import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
+import CompetitivePerformanceChart from "@/components/CompetitivePerformanceChart";
 import SharePortfolio from "@/components/SharePortfolio";
 
 export default async function LeaguePage({ 
@@ -154,10 +155,11 @@ export default async function LeaguePage({
           />
         </div>
 
-        {/* Portfolio Performance Chart */}
+        {/* Competitive Performance Chart */}
         <div className="bg-white/5 rounded-2xl p-6 mb-8">
-          <PortfolioPerformanceChart
-            leagueMemberId={member?.id || ""}
+          <CompetitivePerformanceChart
+            leagueId={leagueId}
+            currentUserId={session.user.id}
             startingBalance={startingBalance}
           />
         </div>
