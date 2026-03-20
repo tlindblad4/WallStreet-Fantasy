@@ -44,7 +44,6 @@ export default function CreateLeaguePage() {
         starting_balance: startingBalance,
         season_length_days: seasonLength,
         max_players: maxPlayers,
-        allow_options_trading: allowOptions,
         status: "draft",
       })
       .select()
