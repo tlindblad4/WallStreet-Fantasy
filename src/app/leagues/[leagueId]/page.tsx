@@ -79,6 +79,32 @@ export default async function LeaguePage({
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
+  // Get all league members to calculate ranking
+  const { data: allMembers } = await supabase
+    .from("league_members")
+    .select(`
+      id,
+      user_id,
+      cash_balance,
+      portfolio_holdings(shares, average_cost)
+    `)
+    .eq("league_id", leagueId)
+    .eq("status", "active");
+
+  // Calculate rankings
+  const memberValues = (allMembers || []).map((m: any) => {
+    const memberHoldingsValue = (m.portfolio_holdings || []).reduce((sum: number, h: any) => 
+      sum + (h.shares * h.average_cost), 0
+    );
+    return {
+      id: m.id,
+      user_id: m.user_id,
+      totalValue: (m.cash_balance || 0) + memberHoldingsValue
+    };
+  }).sort((a: any, b: any) => b.totalValue - a.totalValue);
+
+  const currentUserRank = memberValues.findIndex((m: any) => m.user_id === session.user.id) + 1;
+
   // Get invite code from database
   let inviteCode: string | null = null;
   
@@ -151,7 +177,7 @@ export default async function LeaguePage({
           </div>
           <div className="bg-white/5 rounded-xl p-4">
             <p className="text-xs text-gray-400 mb-1">Rank</p>
-            <p className="text-xl font-bold text-yellow-400">#{member?.current_rank || "-"}</p>
+            <p className="text-xl font-bold text-yellow-400">#{currentUserRank || member?.current_rank || "-"}</p>
           </div>
         </div>
 
