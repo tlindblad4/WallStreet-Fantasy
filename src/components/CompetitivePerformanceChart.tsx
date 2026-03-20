@@ -236,7 +236,7 @@ export default function CompetitivePerformanceChart({
                 border: '1px solid #27272a',
                 borderRadius: '8px'
               }}
-              formatter={(value: any, name: string) => [`$${Number(value).toLocaleString()}`, name]}
+              formatter={(value) => [`$${Number(value).toLocaleString()}`, '']}
             />
             {members.map((member) => (
               <Line 
