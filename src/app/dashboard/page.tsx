@@ -11,6 +11,7 @@ import MarketOverview from "@/components/MarketOverview";
 import { GlassCard, GradientText, PremiumStatCard } from "@/components/ui/PremiumCards";
 import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations/FadeIn";
 import { PremiumLeagueCard } from "@/components/PremiumLeagueCard";
+import EmptyLeaguesState from "@/components/EmptyLeaguesState";
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient();
@@ -172,18 +173,7 @@ export default async function DashboardPage() {
         <div>
           <h2 className="text-2xl font-bold mb-6">Your Leagues</h2>
           {leaguesWithCalculatedValues.length === 0 ? (
-            <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-12 text-center">
-              <Trophy className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No leagues yet</h3>
-              <p className="text-zinc-400 mb-6">
-                Create your first league or join one to start competing!
-              </p>
-              <Link href="/leagues/create">
-                <Button>
-                  Create Your First League
-                </Button>
-              </Link>
-            </div>
+            <EmptyLeaguesState />
           ) : (
             <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {leaguesWithCalculatedValues.map((membership) => (

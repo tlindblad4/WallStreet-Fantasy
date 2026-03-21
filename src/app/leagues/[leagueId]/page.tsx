@@ -72,17 +72,37 @@ export default async function LeaguePage({
   }
 
   // Calculate actual total value (cash + holdings)
-  const holdingsValue = (holdings || []).reduce((sum, h) => {
+  let holdingsValue = 0;
+  const holdingsWithPrices = (holdings || []).map(h => {
     const currentPrice = stockPrices[h.symbol] || h.current_price || h.average_cost || 0;
-    return sum + (h.shares * currentPrice);
-  }, 0);
+    const value = h.shares * currentPrice;
+    holdingsValue += value;
+    return {
+      symbol: h.symbol,
+      shares: h.shares,
+      price: currentPrice,
+      value
+    };
+  });
+  
   const cashBalance = member?.cash_balance || 0;
   const calculatedTotalValue = cashBalance + holdingsValue;
   
-
   const startingBalance = league?.starting_balance || 100000;
   const calculatedReturn = calculatedTotalValue - startingBalance;
   const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
+  
+  // Debug logging
+  console.log('Portfolio Calculation Debug:', {
+    cashBalance,
+    holdingsCount: holdings?.length || 0,
+    holdingsDetails: holdingsWithPrices,
+    holdingsValue,
+    calculatedTotalValue,
+    startingBalance,
+    calculatedReturn,
+    calculatedReturnPercent: calculatedReturnPercent.toFixed(2) + '%'
+  });
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
