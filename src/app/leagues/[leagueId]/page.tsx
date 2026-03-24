@@ -12,6 +12,7 @@ import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
 import CompetitivePerformanceChart from "@/components/CompetitivePerformanceChart";
 import SharePortfolio from "@/components/SharePortfolio";
 import DaysLeftTracker from "@/components/DaysLeftTracker";
+import { RealTimePortfolioValue } from "@/components/RealTimePortfolioValue";
 
 export default async function LeaguePage({ 
   params 
@@ -193,29 +194,17 @@ export default async function LeaguePage({
           <PortfolioRefresh leagueMemberId={member.id} />
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Portfolio Value</p>
-            <p className="text-xl font-bold">${calculatedTotalValue.toLocaleString()}</p>
-            <p className="text-xs text-gray-500 mt-1">Cash + Holdings</p>
-          </div>
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Cash</p>
-            <p className="text-xl font-bold text-green-400">${cashBalance.toLocaleString()}</p>
-            <p className="text-xs text-gray-500 mt-1">Available to trade</p>
-          </div>
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Return</p>
-            <p className={`text-xl font-bold ${calculatedReturnPercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {calculatedReturnPercent >= 0 ? '+' : ''}{calculatedReturnPercent.toFixed(1)}%
-            </p>
-            <p className="text-xs text-gray-500 mt-1">${calculatedReturn >= 0 ? '+' : ''}{calculatedReturn.toLocaleString()}</p>
-          </div>
-          <div className="bg-white/5 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-1">Rank</p>
-            <p className="text-xl font-bold text-yellow-400">#{currentUserRank || member?.current_rank || "-"}</p>
-          </div>
+        {/* Real-time Portfolio Stats */}
+        <RealTimePortfolioValue
+          initialCash={cashBalance}
+          holdings={holdings || []}
+          startingBalance={startingBalance}
+        />
+
+        {/* Rank Card */}
+        <div className="bg-white/5 rounded-xl p-4 mb-6">
+          <p className="text-xs text-gray-400 mb-1">Your Rank</p>
+          <p className="text-xl font-bold text-yellow-400">#{currentUserRank || member?.current_rank || "-"}</p>
         </div>
 
         {/* Actions */}
