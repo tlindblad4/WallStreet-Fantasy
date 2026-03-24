@@ -68,13 +68,23 @@ export function RealTimePortfolioValue({
   // Calculate values
   const holdingsValue = holdings.reduce((sum, h) => {
     const price = prices[h.symbol] || h.current_price || h.average_cost || 0;
-    return sum + h.shares * price;
+    const value = h.shares * price;
+    console.log(`Holding: ${h.symbol}, Shares: ${h.shares}, Price: ${price}, Value: ${value}`);
+    return sum + value;
   }, 0);
 
   const totalValue = initialCash + holdingsValue;
   const totalReturn = totalValue - startingBalance;
   const returnPercent =
     startingBalance > 0 ? (totalReturn / startingBalance) * 100 : 0;
+
+  console.log('RealTimePortfolioValue:', { 
+    holdingsCount: holdings.length, 
+    prices, 
+    holdingsValue, 
+    totalValue,
+    startingBalance 
+  });
 
   if (loading) {
     return (
