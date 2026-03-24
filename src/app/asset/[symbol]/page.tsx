@@ -165,37 +165,57 @@ export default function AssetDetailPage() {
     const fetchAssetData = async () => {
       setLoading(true);
       try {
+        // Map symbol to Finnhub format
+        let finnhubSymbol = symbol;
+        if (symbol === 'BTC' || symbol === 'BTC-USD') {
+          finnhubSymbol = 'BINANCE:BTCUSDT';
+        } else if (symbol === 'ETH' || symbol === 'ETH-USD') {
+          finnhubSymbol = 'BINANCE:ETHUSDT';
+        }
+        
         // Fetch quote
         const quoteResponse = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`
+          `https://finnhub.io/api/v1/quote?symbol=${finnhubSymbol}&token=${FINNHUB_API_KEY}`
         );
         const quote = await quoteResponse.json();
         
-        // Fetch company profile
-        const profileResponse = await fetch(
-          `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`
-        );
-        const profile = await profileResponse.json();
+        // Fetch company profile (skip for crypto)
+        let profile = {};
+        if (!finnhubSymbol.includes('BINANCE')) {
+          const profileResponse = await fetch(
+            `https://finnhub.io/api/v1/stock/profile2?symbol=${finnhubSymbol}&token=${FINNHUB_API_KEY}`
+          );
+          profile = await profileResponse.json();
+        }
         
-        // Fetch basic financials
-        const financialsResponse = await fetch(
-          `https://finnhub.io/api/v1/stock/metric?symbol=${symbol}&metric=all&token=${FINNHUB_API_KEY}`
-        );
-        const financials = await financialsResponse.json();
+        // Fetch basic financials (skip for crypto)
+        let financials = { metric: {} };
+        if (!finnhubSymbol.includes('BINANCE')) {
+          const financialsResponse = await fetch(
+            `https://finnhub.io/api/v1/stock/metric?symbol=${finnhubSymbol}&metric=all&token=${FINNHUB_API_KEY}`
+          );
+          financials = await financialsResponse.json();
+        }
         
-        // Fetch news
-        const today = new Date();
-        const fromDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const newsResponse = await fetch(
-          `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${fromDate}&to=${today.toISOString().split('T')[0]}&token=${FINNHUB_API_KEY}`
-        );
-        const newsData = await newsResponse.json();
+        // Fetch news (skip for crypto)
+        let newsData = [];
+        if (!finnhubSymbol.includes('BINANCE')) {
+          const today = new Date();
+          const fromDate = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const newsResponse = await fetch(
+            `https://finnhub.io/api/v1/company-news?symbol=${finnhubSymbol}&from=${fromDate}&to=${today.toISOString().split('T')[0]}&token=${FINNHUB_API_KEY}`
+          );
+          newsData = await newsResponse.json();
+        }
         
-        // Fetch recommendation trends
-        const recResponse = await fetch(
-          `https://finnhub.io/api/v1/stock/recommendation?symbol=${symbol}&token=${FINNHUB_API_KEY}`
-        );
-        const recommendations = await recResponse.json();
+        // Fetch recommendation trends (skip for crypto)
+        let recommendations = [];
+        if (!finnhubSymbol.includes('BINANCE')) {
+          const recResponse = await fetch(
+            `https://finnhub.io/api/v1/stock/recommendation?symbol=${finnhubSymbol}&token=${FINNHUB_API_KEY}`
+          );
+          recommendations = await recResponse.json();
+        }
         
         const metrics = financials.metric || {};
         

@@ -60,6 +60,7 @@ export default async function LeaguePage({
   let stockPrices: Record<string, number> = {};
   
   if (holdingSymbols.length > 0) {
+    // Try database first
     const { data: prices } = await supabase
       .from("stock_prices")
       .select("symbol, price")
@@ -72,11 +73,30 @@ export default async function LeaguePage({
   }
 
   // Calculate actual total value (cash + holdings)
+  // Priority: 1) stock_prices table, 2) holdings.current_price, 3) holdings.average_cost
   let holdingsValue = 0;
   const holdingsWithPrices = (holdings || []).map(h => {
-    const currentPrice = stockPrices[h.symbol] || h.current_price || h.average_cost || 0;
+    // Use the best available price source
+    let currentPrice = stockPrices[h.symbol];
+    
+    if (!currentPrice || currentPrice === 0) {
+      currentPrice = h.current_price;
+    }
+    
+    if (!currentPrice || currentPrice === 0) {
+      currentPrice = h.average_cost;
+    }
+    
+    // Last resort: use a default price if we know the symbol
+    if (!currentPrice || currentPrice === 0) {
+      if (h.symbol.includes('BTC') || h.symbol === 'BINANCE:BTCUSDT' || h.symbol === 'BTC-USD') {
+        currentPrice = 85000; // Approximate BTC price as fallback
+      }
+    }
+    
     const value = h.shares * currentPrice;
     holdingsValue += value;
+    
     return {
       symbol: h.symbol,
       shares: h.shares,
@@ -92,17 +112,7 @@ export default async function LeaguePage({
   const calculatedReturn = calculatedTotalValue - startingBalance;
   const calculatedReturnPercent = startingBalance > 0 ? (calculatedReturn / startingBalance) * 100 : 0;
   
-  // Debug logging
-  console.log('Portfolio Calculation Debug:', {
-    cashBalance,
-    holdingsCount: holdings?.length || 0,
-    holdingsDetails: holdingsWithPrices,
-    holdingsValue,
-    calculatedTotalValue,
-    startingBalance,
-    calculatedReturn,
-    calculatedReturnPercent: calculatedReturnPercent.toFixed(2) + '%'
-  });
+
 
   const isCommissioner = league.commissioner_id === session.user.id;
 
